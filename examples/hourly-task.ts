@@ -10,7 +10,7 @@ async function createHourlyTask() {
   const startTime = new Date(now)
   startTime.setHours(startTime.getHours() + 1, 0, 0, 0)
 
-  const task = TaskSchedulerBuilder.create()
+  const task = TaskSchedulerBuilder.createFrom()
     .name('HourlyHealthCheck')
     .description('Runs health check every hour')
     .author('Monitoring Team')
@@ -21,10 +21,10 @@ async function createHourlyTask() {
     })
     .addAction('powershell.exe', '-File C:\\Monitoring\\healthcheck.ps1')
     .setSettings({
-      enabled: true,
-      multipleInstancesPolicy: 'IgnoreNew', // Don't start if already running
-      startWhenAvailable: true,
-      executionTimeLimit: 'PT10M', // 10 minutes max
+      Enabled: true,
+      MultipleInstancesPolicy: 'IgnoreNew', // Don't start if already running
+      StartWhenAvailable: true,
+      ExecutionTimeLimit: 'PT10M', // 10 minutes max
     })
     .build()
 

@@ -256,7 +256,7 @@ The library validates task configurations before generating XML:
 
 ✅ **Valid:**
 ```typescript
-TaskSchedulerBuilder.create()
+TaskSchedulerBuilder.createFrom()
   .name('MyTask')           // Required
   .addTimeTrigger(new Date()) // At least one trigger required
   .addAction('notepad.exe')   // At least one action required
@@ -265,7 +265,7 @@ TaskSchedulerBuilder.create()
 
 ❌ **Invalid (throws error):**
 ```typescript
-TaskSchedulerBuilder.create()
+TaskSchedulerBuilder.createFrom()
   .addTimeTrigger(new Date())
   .build()
 // Error: Task name is required
@@ -333,7 +333,7 @@ If Windows rejects your XML:
 
 Export the XML to inspect it:
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('MyTask')
   .addTimeTrigger(new Date())
   .addAction('notepad.exe')

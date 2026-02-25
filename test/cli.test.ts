@@ -8,7 +8,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   const testTaskName = `TestTask_${Date.now()}`
 
   it('should create a task', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .description('Test task for unit tests')
       .addTimeTrigger(new Date(Date.now() + 86400000)) // Tomorrow
@@ -25,7 +25,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   }, 10000)
 
   it('should check if task exists', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .addTimeTrigger(new Date(Date.now() + 86400000))
       .addAction('notepad.exe')
@@ -60,7 +60,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   }, 10000)
 
   it('should filter tasks when listing', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .addTimeTrigger(new Date(Date.now() + 86400000))
       .addAction('notepad.exe')
@@ -77,7 +77,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   }, 10000)
 
   it('should get task info', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .description('Test description')
       .addTimeTrigger(new Date(Date.now() + 86400000))
@@ -96,7 +96,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   }, 10000)
 
   it('should delete a task', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .addTimeTrigger(new Date(Date.now() + 86400000))
       .addAction('notepad.exe')
@@ -113,7 +113,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   }, 10000)
 
   it('should handle task creation with force flag', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .addTimeTrigger(new Date(Date.now() + 86400000))
       .addAction('notepad.exe')
@@ -132,7 +132,7 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
   }, 15000)
 
   it('should create a complex task', async () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name(testTaskName)
       .description('Complex test task')
       .author('Test Suite')
@@ -144,8 +144,8 @@ describe.skipIf(process.platform !== 'win32')('cli integration', () => {
       .runWithHighestPrivileges()
       .hidden()
       .setSettings({
-        executionTimeLimit: 'PT2H',
-        priority: 5,
+        ExecutionTimeLimit: 'PT2H',
+        Priority: 5,
       })
       .build()
 

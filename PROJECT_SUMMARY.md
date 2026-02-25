@@ -119,7 +119,7 @@ Note: CLI integration tests require Windows OS and administrator privileges to c
 import { TaskSchedulerBuilder, createTask, listTasks, deleteTask } from 'task-scheduler-builder'
 
 // Create a task
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('MyTask')
   .description('Example task')
   .addTimeTrigger(new Date(), { repetitionInterval: 'PT1H' })

@@ -9,9 +9,9 @@ export type TriggerType = 'time' | 'logon' | 'startup' | 'idle' | 'event'
 export type ExecutionLevel = 'LeastPrivilege' | 'HighestAvailable'
 
 /**
- * Task run level
+ * Task run level (matches schema runLevelType)
  */
-export type RunLevel = 'LimitedUser' | 'HighestAvailable'
+export type RunLevel = 'LeastPrivilege' | 'HighestAvailable'
 
 /**
  * Day of week for weekly triggers
@@ -19,21 +19,21 @@ export type RunLevel = 'LimitedUser' | 'HighestAvailable'
 export type DayOfWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
 
 /**
- * Logon type for principal
+ * Logon type for principal (matches schema logonType)
  */
-export type LogonType = 'Password' | 'S4U' | 'InteractiveToken' | 'ServiceAccount'
+export type LogonType = 'Password' | 'S4U' | 'InteractiveToken' | 'InteractiveTokenOrPassword'
 
 /**
  * Time trigger configuration
  */
 export interface TimeTrigger {
   type: 'time'
-  startBoundary: Date
-  enabled?: boolean
-  repetition?: {
-    interval: string // PT1H for 1 hour, PT30M for 30 minutes
-    duration?: string // PT24H for 24 hours
-    stopAtDurationEnd?: boolean
+  StartBoundary: Date
+  Enabled?: boolean
+  Repetition?: {
+    Interval: string // PT1H for 1 hour, PT30M for 30 minutes
+    Duration?: string // PT24H for 24 hours
+    StopAtDurationEnd?: boolean
   }
 }
 
@@ -42,8 +42,8 @@ export interface TimeTrigger {
  */
 export interface LogonTrigger {
   type: 'logon'
-  enabled?: boolean
-  userId?: string
+  Enabled?: boolean
+  UserId?: string
 }
 
 /**
@@ -51,8 +51,8 @@ export interface LogonTrigger {
  */
 export interface StartupTrigger {
   type: 'startup'
-  enabled?: boolean
-  delay?: string // PT5M for 5 minutes
+  Enabled?: boolean
+  Delay?: string // PT5M for 5 minutes
 }
 
 /**
@@ -60,8 +60,8 @@ export interface StartupTrigger {
  */
 export interface DailySchedule {
   type: 'daily'
-  startBoundary: Date
-  daysInterval: number // Repeat every N days
+  StartBoundary: Date
+  DaysInterval: number // Repeat every N days
 }
 
 /**
@@ -69,9 +69,9 @@ export interface DailySchedule {
  */
 export interface WeeklySchedule {
   type: 'weekly'
-  startBoundary: Date
-  weeksInterval: number // Repeat every N weeks
-  daysOfWeek: DayOfWeek[]
+  StartBoundary: Date
+  WeeksInterval: number // Repeat every N weeks
+  DaysOfWeek: DayOfWeek[]
 }
 
 /**
@@ -88,68 +88,76 @@ export type Schedule = DailySchedule | WeeklySchedule
  * Action to execute
  */
 export interface ExecAction {
-  path: string
-  arguments?: string
-  workingDirectory?: string
+  Command: string
+  Arguments?: string
+  WorkingDirectory?: string
 }
 
 /**
- * Principal (user context) configuration
+ * Principal (user context) configuration (matches schema principalType)
  */
 export interface Principal {
-  userId?: string
-  logonType?: LogonType
-  runLevel?: RunLevel
+  UserId?: string
+  LogonType?: LogonType
+  RunLevel?: RunLevel
+  GroupId?: string
+  DisplayName?: string
+}
+
+/**
+ * Principals wrapper (matches schema principalsType)
+ * Schema requires Principal to be wrapped in Principals element
+ */
+export interface Principals {
+  Principal: Principal
 }
 
 /**
  * Task settings
  */
 export interface TaskSettings {
-  allowDemandStart?: boolean
-  allowHardTerminate?: boolean
-  disallowStartIfOnBatteries?: boolean
-  enabled?: boolean
-  executionTimeLimit?: string // PT72H for 72 hours
-  hidden?: boolean
-  multipleInstancesPolicy?: 'IgnoreNew' | 'Parallel' | 'Queue'
-  priority?: number // 0-10, 7 is normal
-  restartOnFailure?: {
-    interval: string
-    count: number
+  AllowDemandStart?: boolean
+  AllowHardTerminate?: boolean
+  DisallowStartIfOnBatteries?: boolean
+  Enabled?: boolean
+  ExecutionTimeLimit?: string // PT72H for 72 hours
+  Hidden?: boolean
+  MultipleInstancesPolicy?: 'IgnoreNew' | 'Parallel' | 'Queue'
+  Priority?: number // 0-10, 7 is normal
+  RestartOnFailure?: {
+    Interval: string
+    Count: number
   }
-  runOnlyIfIdle?: boolean
-  runOnlyIfNetworkAvailable?: boolean
-  startWhenAvailable?: boolean
-  stopIfGoingOnBatteries?: boolean
-  wakeToRun?: boolean
+  RunOnlyIfIdle?: boolean
+  RunOnlyIfNetworkAvailable?: boolean
+  StartWhenAvailable?: boolean
+  StopIfGoingOnBatteries?: boolean
+  WakeToRun?: boolean
 }
 
 /**
  * Registration info metadata
  */
 export interface RegistrationInfo {
-  description?: string
-  author?: string
-  version?: string
-  date?: Date
-  documentation?: string
-  uri?: string
+  Description?: string
+  Author?: string
+  Version?: string
+  Date?: Date
+  Documentation?: string
+  URI?: string
 }
 
 /**
- * Complete task configuration
+ * Complete task configuration (matches schema taskType)
  */
 export interface TaskConfig {
   name: string
-  registrationInfo?: RegistrationInfo
-  // Legacy fields for backward compatibility
-  description?: string
-  author?: string
-  triggers: Trigger[]
-  actions: ExecAction[]
-  principal?: Principal
-  settings?: TaskSettings
+  version?: string // Task version attribute (default: "1.3")
+  RegistrationInfo?: RegistrationInfo
+  Triggers: Trigger[]
+  Actions: ExecAction[]
+  Principals?: Principals // Note: Schema requires Principals wrapper
+  Settings?: TaskSettings
 }
 
 /**

@@ -10,11 +10,12 @@ import { parseXmlTemplate } from './xml'
 
 /**
  * Builder for creating Windows Task Scheduler configurations
+ * Schema: https://learn.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-schema
  */
 export class TaskSchedulerBuilder {
   private config: Partial<TaskConfig> = {
-    triggers: [],
-    actions: [],
+    Triggers: [],
+    Actions: [],
   }
 
   /**
@@ -27,8 +28,8 @@ export class TaskSchedulerBuilder {
       this.config = {
         ...this.config,
         ...templateConfig,
-        triggers: templateConfig.triggers || [],
-        actions: templateConfig.actions || [],
+        Triggers: templateConfig.Triggers || [],
+        Actions: templateConfig.Actions || [],
       }
     }
   }
@@ -42,34 +43,40 @@ export class TaskSchedulerBuilder {
   }
 
   /**
-   * Set the task description (legacy method, prefer setRegistrationInfo)
-   */
-  description(description: string): this {
-    this.config.description = description
-    return this
-  }
-
-  /**
-   * Set the task author (legacy method, prefer setRegistrationInfo)
-   */
-  author(author: string): this {
-    this.config.author = author
-    return this
-  }
-
-  /**
    * Set registration info metadata
    * @example
    * .setRegistrationInfo({
-   *   author: 'IT Department',
-   *   description: 'Daily backup task',
-   *   version: '1.0.0',
-   *   date: new Date(),
-   *   uri: '\\MyTasks\\Backup'
+   *   Author: 'IT Department',
+   *   Description: 'Daily backup task',
+   *   Version: '1.0.0',
+   *   Date: new Date(),
+   *   URI: '\\MyTasks\\Backup'
    * })
    */
   setRegistrationInfo(info: RegistrationInfo): this {
-    this.config.registrationInfo = info
+    this.config.RegistrationInfo = info
+    return this
+  }
+
+  /**
+   * Set the task description
+   */
+  description(description: string): this {
+    if (!this.config.RegistrationInfo) {
+      this.config.RegistrationInfo = {}
+    }
+    this.config.RegistrationInfo.Description = description
+    return this
+  }
+
+  /**
+   * Set the task author
+   */
+  author(author: string): this {
+    if (!this.config.RegistrationInfo) {
+      this.config.RegistrationInfo = {}
+    }
+    this.config.RegistrationInfo.Author = author
     return this
   }
 
@@ -77,10 +84,10 @@ export class TaskSchedulerBuilder {
    * Set the task version
    */
   version(version: string): this {
-    if (!this.config.registrationInfo) {
-      this.config.registrationInfo = {}
+    if (!this.config.RegistrationInfo) {
+      this.config.RegistrationInfo = {}
     }
-    this.config.registrationInfo.version = version
+    this.config.RegistrationInfo.Version = version
     return this
   }
 
@@ -89,10 +96,10 @@ export class TaskSchedulerBuilder {
    * @example .uri('\\MyCompany\\Maintenance\\Backup')
    */
   uri(uri: string): this {
-    if (!this.config.registrationInfo) {
-      this.config.registrationInfo = {}
+    if (!this.config.RegistrationInfo) {
+      this.config.RegistrationInfo = {}
     }
-    this.config.registrationInfo.uri = uri
+    this.config.RegistrationInfo.URI = uri
     return this
   }
 
@@ -100,10 +107,10 @@ export class TaskSchedulerBuilder {
    * Set the task documentation/notes
    */
   documentation(doc: string): this {
-    if (!this.config.registrationInfo) {
-      this.config.registrationInfo = {}
+    if (!this.config.RegistrationInfo) {
+      this.config.RegistrationInfo = {}
     }
-    this.config.registrationInfo.documentation = doc
+    this.config.RegistrationInfo.Documentation = doc
     return this
   }
 
@@ -111,10 +118,10 @@ export class TaskSchedulerBuilder {
    * Set the registration date
    */
   registrationDate(date: Date): this {
-    if (!this.config.registrationInfo) {
-      this.config.registrationInfo = {}
+    if (!this.config.RegistrationInfo) {
+      this.config.RegistrationInfo = {}
     }
-    this.config.registrationInfo.date = date
+    this.config.RegistrationInfo.Date = date
     return this
   }
 
@@ -127,15 +134,15 @@ export class TaskSchedulerBuilder {
     repetitionDuration?: string
     stopAtDurationEnd?: boolean
   }): this {
-    this.config.triggers!.push({
+    this.config.Triggers!.push({
       type: 'time',
-      startBoundary: startTime,
-      enabled: options?.enabled ?? true,
-      repetition: options?.repetitionInterval
+      StartBoundary: startTime,
+      Enabled: options?.enabled ?? true,
+      Repetition: options?.repetitionInterval
         ? {
-            interval: options.repetitionInterval,
-            duration: options.repetitionDuration,
-            stopAtDurationEnd: options.stopAtDurationEnd,
+            Interval: options.repetitionInterval,
+            Duration: options.repetitionDuration,
+            StopAtDurationEnd: options.stopAtDurationEnd,
           }
         : undefined,
     })
@@ -146,10 +153,10 @@ export class TaskSchedulerBuilder {
    * Add a logon trigger
    */
   addLogonTrigger(options?: { enabled?: boolean, userId?: string }): this {
-    this.config.triggers!.push({
+    this.config.Triggers!.push({
       type: 'logon',
-      enabled: options?.enabled ?? true,
-      userId: options?.userId,
+      Enabled: options?.enabled ?? true,
+      UserId: options?.userId,
     })
     return this
   }
@@ -158,10 +165,10 @@ export class TaskSchedulerBuilder {
    * Add a startup trigger
    */
   addStartupTrigger(options?: { enabled?: boolean, delay?: string }): this {
-    this.config.triggers!.push({
+    this.config.Triggers!.push({
       type: 'startup',
-      enabled: options?.enabled ?? true,
-      delay: options?.delay,
+      Enabled: options?.enabled ?? true,
+      Delay: options?.delay,
     })
     return this
   }
@@ -170,10 +177,10 @@ export class TaskSchedulerBuilder {
    * Add a daily schedule trigger
    */
   addDailySchedule(startTime: Date, _daysInterval: number = 1): this {
-    this.config.triggers!.push({
+    this.config.Triggers!.push({
       type: 'time',
-      startBoundary: startTime,
-      enabled: true,
+      StartBoundary: startTime,
+      Enabled: true,
     })
     return this
   }
@@ -182,10 +189,10 @@ export class TaskSchedulerBuilder {
    * Add a weekly schedule trigger
    */
   addWeeklySchedule(startTime: Date, _daysOfWeek: DayOfWeek[], _weeksInterval: number = 1): this {
-    this.config.triggers!.push({
+    this.config.Triggers!.push({
       type: 'time',
-      startBoundary: startTime,
-      enabled: true,
+      StartBoundary: startTime,
+      Enabled: true,
     })
     return this
   }
@@ -194,23 +201,34 @@ export class TaskSchedulerBuilder {
    * Add an execution action
    */
   addAction(path: string, args?: string, workingDir?: string): this {
-    this.config.actions!.push({
-      path,
-      arguments: args,
-      workingDirectory: workingDir,
+    this.config.Actions!.push({
+      Command: path,
+      Arguments: args,
+      WorkingDirectory: workingDir,
     })
     return this
   }
 
   /**
    * Set the principal (user context)
+   * Note: Schema requires Principal to be wrapped in Principals element
    */
   setPrincipal(options: {
-    userId?: string
-    logonType?: LogonType
-    runLevel?: RunLevel
+    UserId?: string
+    LogonType?: LogonType
+    RunLevel?: RunLevel
+    GroupId?: string
+    DisplayName?: string
   }): this {
-    this.config.principal = options
+    this.config.Principals = {
+      Principal: {
+        UserId: options.UserId,
+        LogonType: options.LogonType,
+        RunLevel: options.RunLevel,
+        GroupId: options.GroupId,
+        DisplayName: options.DisplayName,
+      },
+    }
     return this
   }
 
@@ -218,7 +236,7 @@ export class TaskSchedulerBuilder {
    * Set task settings
    */
   setSettings(settings: TaskSettings): this {
-    this.config.settings = settings
+    this.config.Settings = settings
     return this
   }
 
@@ -226,10 +244,12 @@ export class TaskSchedulerBuilder {
    * Configure the task to run with highest privileges
    */
   runWithHighestPrivileges(): this {
-    if (!this.config.principal) {
-      this.config.principal = {}
+    if (!this.config.Principals) {
+      this.config.Principals = {
+        Principal: {},
+      }
     }
-    this.config.principal.runLevel = 'HighestAvailable'
+    this.config.Principals.Principal.RunLevel = 'HighestAvailable'
     return this
   }
 
@@ -237,10 +257,10 @@ export class TaskSchedulerBuilder {
    * Configure the task to be hidden
    */
   hidden(): this {
-    if (!this.config.settings) {
-      this.config.settings = {}
+    if (!this.config.Settings) {
+      this.config.Settings = {}
     }
-    this.config.settings.hidden = true
+    this.config.Settings.Hidden = true
     return this
   }
 
@@ -248,10 +268,10 @@ export class TaskSchedulerBuilder {
    * Enable the task
    */
   enabled(enabled: boolean = true): this {
-    if (!this.config.settings) {
-      this.config.settings = {}
+    if (!this.config.Settings) {
+      this.config.Settings = {}
     }
-    this.config.settings.enabled = enabled
+    this.config.Settings.Enabled = enabled
     return this
   }
 
@@ -262,10 +282,10 @@ export class TaskSchedulerBuilder {
     if (!this.config.name) {
       throw new Error('Task name is required')
     }
-    if (this.config.actions!.length === 0) {
+    if (this.config.Actions!.length === 0) {
       throw new Error('At least one action is required')
     }
-    if (this.config.triggers!.length === 0) {
+    if (this.config.Triggers!.length === 0) {
       throw new Error('At least one trigger is required')
     }
 
@@ -277,10 +297,10 @@ export class TaskSchedulerBuilder {
    * @param xmlTemplatePath Optional path to XML template file to load initial configuration
    * @example
    * // Create from scratch
-   * const builder = TaskSchedulerBuilder.create()
+   * const builder = TaskSchedulerBuilder.createFrom()
    * 
    * // Create from XML template
-   * const builder = TaskSchedulerBuilder.create('template.xml')
+   * const builder = TaskSchedulerBuilder.createFrom('template.xml')
    */
   static createFrom(xmlTemplatePath?: string): TaskSchedulerBuilder {
     return new TaskSchedulerBuilder(xmlTemplatePath)

@@ -6,7 +6,7 @@ import { TaskSchedulerBuilder, createTask } from 'task-scheduler-builder'
 
 async function createDailyBackupTask() {
   // Create a task that runs every day at 2 AM
-  const task = TaskSchedulerBuilder.create()
+  const task = TaskSchedulerBuilder.createFrom()
     .name('DailyBackup')
     .description('Runs daily backup script')
     .author('System Administrator')
@@ -14,12 +14,12 @@ async function createDailyBackupTask() {
     .addAction('C:\\Backup\\backup.bat')
     .runWithHighestPrivileges()
     .setSettings({
-      enabled: true,
-      executionTimeLimit: 'PT2H', // 2 hours max
-      startWhenAvailable: true,
-      restartOnFailure: {
-        interval: 'PT10M',
-        count: 3,
+      Enabled: true,
+      ExecutionTimeLimit: 'PT2H', // 2 hours max
+      StartWhenAvailable: true,
+      RestartOnFailure: {
+        Interval: 'PT10M',
+        Count: 3,
       },
     })
     .build()

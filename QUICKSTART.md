@@ -16,7 +16,7 @@ Create a simple task that runs Notepad every hour:
 import { TaskSchedulerBuilder, createTask } from 'task-scheduler-builder'
 
 // Build the task configuration
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('MyFirstTask')
   .description('Opens Notepad every hour')
   .addTimeTrigger(new Date(), {
@@ -41,7 +41,7 @@ if (result.success) {
 ### Daily Task at Specific Time
 
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('DailyReport')
   .addTimeTrigger(new Date('2024-06-01T09:00:00'))
   .addAction('C:\\Scripts\\report.bat')
@@ -53,7 +53,7 @@ await createTask(task, { force: true })
 ### Task with Admin Privileges
 
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('AdminTask')
   .addTimeTrigger(new Date())
   .addAction('powershell.exe', '-File C:\\Scripts\\admin.ps1')
@@ -66,7 +66,7 @@ await createTask(task, { force: true })
 ### Startup Task
 
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('StartupTask')
   .addStartupTrigger({ delay: 'PT5M' }) // 5 minutes after startup
   .addAction('C:\\Scripts\\startup.bat')

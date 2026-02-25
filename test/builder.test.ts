@@ -11,9 +11,9 @@ describe('taskSchedulerBuilder', () => {
       .build()
 
     expect(task.name).toBe('TestTask')
-    expect(task.description).toBe('A test task')
-    expect(task.triggers).toHaveLength(1)
-    expect(task.actions).toHaveLength(1)
+    expect(task.RegistrationInfo?.Description).toBe('A test task')
+    expect(task.Triggers).toHaveLength(1)
+    expect(task.Actions).toHaveLength(1)
   })
 
   it('should throw error if name is missing', () => {
@@ -59,10 +59,10 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    expect(task.triggers).toHaveLength(3)
-    expect(task.triggers[0].type).toBe('time')
-    expect(task.triggers[1].type).toBe('logon')
-    expect(task.triggers[2].type).toBe('startup')
+    expect(task.Triggers).toHaveLength(3)
+    expect(task.Triggers[0].type).toBe('time')
+    expect(task.Triggers[1].type).toBe('logon')
+    expect(task.Triggers[2].type).toBe('startup')
   })
 
   it('should add multiple actions', () => {
@@ -73,10 +73,10 @@ describe('taskSchedulerBuilder', () => {
       .addAction('notepad.exe', 'test.txt', 'C:\\')
       .build()
 
-    expect(task.actions).toHaveLength(2)
-    expect(task.actions[0].path).toBe('cmd.exe')
-    expect(task.actions[0].arguments).toBe('/c echo hello')
-    expect(task.actions[1].workingDirectory).toBe('C:\\')
+    expect(task.Actions).toHaveLength(2)
+    expect(task.Actions[0].Command).toBe('cmd.exe')
+    expect(task.Actions[0].Arguments).toBe('/c echo hello')
+    expect(task.Actions[1].WorkingDirectory).toBe('C:\\')
   })
 
   it('should configure time trigger with repetition', () => {
@@ -90,13 +90,13 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    const trigger = task.triggers[0]
+    const trigger = task.Triggers[0]
     expect(trigger.type).toBe('time')
     if (trigger.type === 'time') {
-      expect(trigger.repetition).toBeDefined()
-      expect(trigger.repetition?.interval).toBe('PT1H')
-      expect(trigger.repetition?.duration).toBe('PT12H')
-      expect(trigger.repetition?.stopAtDurationEnd).toBe(true)
+      expect(trigger.Repetition).toBeDefined()
+      expect(trigger.Repetition?.Interval).toBe('PT1H')
+      expect(trigger.Repetition?.Duration).toBe('PT12H')
+      expect(trigger.Repetition?.StopAtDurationEnd).toBe(true)
     }
   })
 
@@ -107,10 +107,10 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    const trigger = task.triggers[0]
+    const trigger = task.Triggers[0]
     expect(trigger.type).toBe('logon')
     if (trigger.type === 'logon') {
-      expect(trigger.userId).toBe('DOMAIN\\User')
+      expect(trigger.UserId).toBe('DOMAIN\\User')
     }
   })
 
@@ -121,10 +121,10 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    const trigger = task.triggers[0]
+    const trigger = task.Triggers[0]
     expect(trigger.type).toBe('startup')
     if (trigger.type === 'startup') {
-      expect(trigger.delay).toBe('PT5M')
+      expect(trigger.Delay).toBe('PT5M')
     }
   })
 
@@ -134,16 +134,16 @@ describe('taskSchedulerBuilder', () => {
       .addTimeTrigger(new Date())
       .addAction('test.exe')
       .setPrincipal({
-        userId: 'SYSTEM',
-        runLevel: 'HighestAvailable',
-        logonType: 'Password',
+        UserId: 'SYSTEM',
+        RunLevel: 'HighestAvailable',
+        LogonType: 'Password',
       })
       .build()
 
-    expect(task.principal).toBeDefined()
-    expect(task.principal?.userId).toBe('SYSTEM')
-    expect(task.principal?.runLevel).toBe('HighestAvailable')
-    expect(task.principal?.logonType).toBe('Password')
+    expect(task.Principals).toBeDefined()
+    expect(task.Principals?.Principal.UserId).toBe('SYSTEM')
+    expect(task.Principals?.Principal.RunLevel).toBe('HighestAvailable')
+    expect(task.Principals?.Principal.LogonType).toBe('Password')
   })
 
   it('should set highest privileges using helper method', () => {
@@ -154,7 +154,7 @@ describe('taskSchedulerBuilder', () => {
       .runWithHighestPrivileges()
       .build()
 
-    expect(task.principal?.runLevel).toBe('HighestAvailable')
+    expect(task.Principals?.Principal.RunLevel).toBe('HighestAvailable')
   })
 
   it('should configure task settings', () => {
@@ -163,18 +163,18 @@ describe('taskSchedulerBuilder', () => {
       .addTimeTrigger(new Date())
       .addAction('test.exe')
       .setSettings({
-        enabled: true,
-        hidden: true,
-        allowDemandStart: true,
-        multipleInstancesPolicy: 'Queue',
-        priority: 5,
+        Enabled: true,
+        Hidden: true,
+        AllowDemandStart: true,
+        MultipleInstancesPolicy: 'Queue',
+        Priority: 5,
       })
       .build()
 
-    expect(task.settings).toBeDefined()
-    expect(task.settings?.enabled).toBe(true)
-    expect(task.settings?.hidden).toBe(true)
-    expect(task.settings?.priority).toBe(5)
+    expect(task.Settings).toBeDefined()
+    expect(task.Settings?.Enabled).toBe(true)
+    expect(task.Settings?.Hidden).toBe(true)
+    expect(task.Settings?.Priority).toBe(5)
   })
 
   it('should configure hidden task using helper method', () => {
@@ -185,7 +185,7 @@ describe('taskSchedulerBuilder', () => {
       .hidden()
       .build()
 
-    expect(task.settings?.hidden).toBe(true)
+    expect(task.Settings?.Hidden).toBe(true)
   })
 
   it('should configure enabled state using helper method', () => {
@@ -196,7 +196,7 @@ describe('taskSchedulerBuilder', () => {
       .enabled(false)
       .build()
 
-    expect(task.settings?.enabled).toBe(false)
+    expect(task.Settings?.Enabled).toBe(false)
   })
 
   it('should set author', () => {
@@ -207,7 +207,7 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    expect(task.author).toBe('John Doe')
+    expect(task.RegistrationInfo?.Author).toBe('John Doe')
   })
 
   it('should build a complete complex task', () => {
@@ -224,29 +224,29 @@ describe('taskSchedulerBuilder', () => {
       .addLogonTrigger({ userId: 'Administrator' })
       .addAction('powershell.exe', '-File C:\\Scripts\\backup.ps1', 'C:\\Scripts')
       .setPrincipal({
-        userId: 'SYSTEM',
-        runLevel: 'HighestAvailable',
-        logonType: 'ServiceAccount',
+        UserId: 'SYSTEM',
+        RunLevel: 'HighestAvailable',
+        LogonType: 'S4U',
       })
       .setSettings({
-        enabled: true,
-        hidden: false,
-        allowDemandStart: true,
-        multipleInstancesPolicy: 'Queue',
-        priority: 4,
-        executionTimeLimit: 'PT2H',
-        restartOnFailure: {
-          interval: 'PT10M',
-          count: 3,
+        Enabled: true,
+        Hidden: false,
+        AllowDemandStart: true,
+        MultipleInstancesPolicy: 'Queue',
+        Priority: 4,
+        ExecutionTimeLimit: 'PT2H',
+        RestartOnFailure: {
+          Interval: 'PT10M',
+          Count: 3,
         },
       })
       .build()
 
     expect(task.name).toBe('ComplexTask')
-    expect(task.triggers).toHaveLength(2)
-    expect(task.actions).toHaveLength(1)
-    expect(task.principal?.runLevel).toBe('HighestAvailable')
-    expect(task.settings?.priority).toBe(4)
+    expect(task.Triggers).toHaveLength(2)
+    expect(task.Actions).toHaveLength(1)
+    expect(task.Principals?.Principal.RunLevel).toBe('HighestAvailable')
+    expect(task.Settings?.Priority).toBe(4)
   })
 
   it('should set RegistrationInfo using setRegistrationInfo', () => {
@@ -255,24 +255,24 @@ describe('taskSchedulerBuilder', () => {
     const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .setRegistrationInfo({
-        author: 'IT Department',
-        description: 'Backup task',
-        version: '1.0.0',
-        date: regDate,
-        uri: '\\MyTasks\\Backup',
-        documentation: 'See wiki for details',
+        Author: 'IT Department',
+        Description: 'Backup task',
+        Version: '1.0.0',
+        Date: regDate,
+        URI: '\\MyTasks\\Backup',
+        Documentation: 'See wiki for details',
       })
       .addTimeTrigger(new Date())
       .addAction('test.exe')
       .build()
 
-    expect(task.registrationInfo).toBeDefined()
-    expect(task.registrationInfo?.author).toBe('IT Department')
-    expect(task.registrationInfo?.description).toBe('Backup task')
-    expect(task.registrationInfo?.version).toBe('1.0.0')
-    expect(task.registrationInfo?.date).toBe(regDate)
-    expect(task.registrationInfo?.uri).toBe('\\MyTasks\\Backup')
-    expect(task.registrationInfo?.documentation).toBe('See wiki for details')
+    expect(task.RegistrationInfo).toBeDefined()
+    expect(task.RegistrationInfo?.Author).toBe('IT Department')
+    expect(task.RegistrationInfo?.Description).toBe('Backup task')
+    expect(task.RegistrationInfo?.Version).toBe('1.0.0')
+    expect(task.RegistrationInfo?.Date).toBe(regDate)
+    expect(task.RegistrationInfo?.URI).toBe('\\MyTasks\\Backup')
+    expect(task.RegistrationInfo?.Documentation).toBe('See wiki for details')
   })
 
   it('should set RegistrationInfo using individual helper methods', () => {
@@ -290,15 +290,12 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    // Legacy fields should still work
-    expect(task.author).toBe('Admin')
-    expect(task.description).toBe('Test task')
-
-    // New fields in registrationInfo
-    expect(task.registrationInfo?.version).toBe('2.0.0')
-    expect(task.registrationInfo?.uri).toBe('\\Tasks\\Test')
-    expect(task.registrationInfo?.documentation).toBe('Important notes')
-    expect(task.registrationInfo?.date).toBe(regDate)
+    expect(task.RegistrationInfo?.Author).toBe('Admin')
+    expect(task.RegistrationInfo?.Description).toBe('Test task')
+    expect(task.RegistrationInfo?.Version).toBe('2.0.0')
+    expect(task.RegistrationInfo?.URI).toBe('\\Tasks\\Test')
+    expect(task.RegistrationInfo?.Documentation).toBe('Important notes')
+    expect(task.RegistrationInfo?.Date).toBe(regDate)
   })
 
   it('should merge legacy fields with RegistrationInfo', () => {
@@ -311,10 +308,9 @@ describe('taskSchedulerBuilder', () => {
       .addAction('test.exe')
       .build()
 
-    // Both legacy and new format should be accessible
-    expect(task.author).toBe('Legacy Author')
-    expect(task.description).toBe('Legacy Description')
-    expect(task.registrationInfo?.version).toBe('1.0.0')
+    expect(task.RegistrationInfo?.Author).toBe('Legacy Author')
+    expect(task.RegistrationInfo?.Description).toBe('Legacy Description')
+    expect(task.RegistrationInfo?.Version).toBe('1.0.0')
   })
 })
 
@@ -327,37 +323,37 @@ describe('taskSchedulerBuilder - XML Template Loading', () => {
       .build()
 
     // Check RegistrationInfo
-    expect(task.registrationInfo?.author).toBe('Test Author')
-    expect(task.registrationInfo?.description).toBe('Test template task')
-    expect(task.registrationInfo?.version).toBe('1.0.0')
-    expect(task.registrationInfo?.uri).toBe('\\Test\\Template')
-    expect(task.registrationInfo?.documentation).toBe('Test documentation')
+    expect(task.RegistrationInfo?.Author).toBe('Test Author')
+    expect(task.RegistrationInfo?.Description).toBe('Test template task')
+    expect(task.RegistrationInfo?.Version).toBe('1.0.0')
+    expect(task.RegistrationInfo?.URI).toBe('\\Test\\Template')
+    expect(task.RegistrationInfo?.Documentation).toBe('Test documentation')
 
     // Check triggers (should have 2 from template)
-    expect(task.triggers).toHaveLength(2)
-    expect(task.triggers[0].type).toBe('time')
-    expect(task.triggers[1].type).toBe('logon')
+    expect(task.Triggers).toHaveLength(2)
+    expect(task.Triggers[0].type).toBe('time')
+    expect(task.Triggers[1].type).toBe('logon')
 
     // Check actions (should have 2 from template)
-    expect(task.actions).toHaveLength(2)
-    expect(task.actions[0].path).toBe('cmd.exe')
-    expect(task.actions[0].arguments).toBe('/c echo test')
-    expect(task.actions[0].workingDirectory).toBe('C:\\Test')
-    expect(task.actions[1].path).toBe('notepad.exe')
+    expect(task.Actions).toHaveLength(2)
+    expect(task.Actions[0].Command).toBe('cmd.exe')
+    expect(task.Actions[0].Arguments).toBe('/c echo test')
+    expect(task.Actions[0].WorkingDirectory).toBe('C:\\Test')
+    expect(task.Actions[1].Command).toBe('notepad.exe')
 
     // Check principal
-    expect(task.principal?.userId).toBe('SYSTEM')
-    expect(task.principal?.logonType).toBe('ServiceAccount')
-    expect(task.principal?.runLevel).toBe('HighestAvailable')
+    expect(task.Principals?.Principal.UserId).toBe('SYSTEM')
+    expect(task.Principals?.Principal.LogonType).toBe('S4U')
+    expect(task.Principals?.Principal.RunLevel).toBe('HighestAvailable')
 
     // Check settings
-    expect(task.settings?.enabled).toBe(true)
-    expect(task.settings?.hidden).toBe(false)
-    expect(task.settings?.priority).toBe(5)
-    expect(task.settings?.wakeToRun).toBe(true)
-    expect(task.settings?.multipleInstancesPolicy).toBe('Queue')
-    expect(task.settings?.restartOnFailure?.interval).toBe('PT10M')
-    expect(task.settings?.restartOnFailure?.count).toBe(3)
+    expect(task.Settings?.Enabled).toBe(true)
+    expect(task.Settings?.Hidden).toBe(false)
+    expect(task.Settings?.Priority).toBe(5)
+    expect(task.Settings?.WakeToRun).toBe(true)
+    expect(task.Settings?.MultipleInstancesPolicy).toBe('Queue')
+    expect(task.Settings?.RestartOnFailure?.Interval).toBe('PT10M')
+    expect(task.Settings?.RestartOnFailure?.Count).toBe(3)
   })
 
   it('should allow overriding template values', () => {
@@ -365,20 +361,20 @@ describe('taskSchedulerBuilder - XML Template Loading', () => {
       .name('OverriddenTask')
       .description('Overridden description')
       .setSettings({
-        priority: 3,
-        hidden: true,
+        Priority: 3,
+        Hidden: true,
       })
       .addAction('powershell.exe', '-Command echo override')
       .build()
 
     expect(task.name).toBe('OverriddenTask')
-    expect(task.description).toBe('Overridden description')
-    expect(task.settings?.priority).toBe(3)
-    expect(task.settings?.hidden).toBe(true)
+    expect(task.RegistrationInfo?.Description).toBe('Overridden description')
+    expect(task.Settings?.Priority).toBe(3)
+    expect(task.Settings?.Hidden).toBe(true)
     
     // Should have template actions plus new action
-    expect(task.actions).toHaveLength(3)
-    expect(task.actions[2].path).toBe('powershell.exe')
+    expect(task.Actions).toHaveLength(3)
+    expect(task.Actions[2].Command).toBe('powershell.exe')
   })
 
   it('should load time trigger with repetition from template', () => {
@@ -386,13 +382,13 @@ describe('taskSchedulerBuilder - XML Template Loading', () => {
       .name('TestTask')
       .build()
 
-    const timeTrigger = task.triggers[0]
+    const timeTrigger = task.Triggers[0]
     expect(timeTrigger.type).toBe('time')
     
     if (timeTrigger.type === 'time') {
-      expect(timeTrigger.repetition?.interval).toBe('PT1H')
-      expect(timeTrigger.repetition?.duration).toBe('PT12H')
-      expect(timeTrigger.repetition?.stopAtDurationEnd).toBe(true)
+      expect(timeTrigger.Repetition?.Interval).toBe('PT1H')
+      expect(timeTrigger.Repetition?.Duration).toBe('PT12H')
+      expect(timeTrigger.Repetition?.StopAtDurationEnd).toBe(true)
     }
   })
 
@@ -401,12 +397,12 @@ describe('taskSchedulerBuilder - XML Template Loading', () => {
       .name('TestTask')
       .build()
 
-    const logonTrigger = task.triggers[1]
+    const logonTrigger = task.Triggers[1]
     expect(logonTrigger.type).toBe('logon')
     
     if (logonTrigger.type === 'logon') {
-      expect(logonTrigger.userId).toBe('TestUser')
-      expect(logonTrigger.enabled).toBe(true)
+      expect(logonTrigger.UserId).toBe('TestUser')
+      expect(logonTrigger.Enabled).toBe(true)
     }
   })
 
@@ -419,7 +415,7 @@ describe('taskSchedulerBuilder - XML Template Loading', () => {
       .build()
 
     expect(task.name).toBe('NoTemplateTask')
-    expect(task.triggers).toHaveLength(1)
-    expect(task.actions).toHaveLength(1)
+    expect(task.Triggers).toHaveLength(1)
+    expect(task.Actions).toHaveLength(1)
   })
 })

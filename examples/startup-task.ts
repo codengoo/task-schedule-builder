@@ -5,7 +5,7 @@
 import { TaskSchedulerBuilder, createTask } from 'task-scheduler-builder'
 
 async function createStartupTask() {
-  const task = TaskSchedulerBuilder.create()
+  const task = TaskSchedulerBuilder.createFrom()
     .name('StartupMonitor')
     .description('Monitors system after startup')
     .addStartupTrigger({ delay: 'PT5M' }) // Wait 5 minutes after startup

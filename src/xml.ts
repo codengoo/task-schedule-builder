@@ -1,5 +1,19 @@
+import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import { readFileSync } from 'node:fs'
-import type { ExecAction, Principal, TaskConfig, TaskSettings, Trigger } from './types'
+import type { ExecAction, TaskConfig, Trigger } from './types'
+
+const parser = new XMLParser({
+  ignoreDeclaration: true,
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+})
+
+const builder = new XMLBuilder({
+  format: true,
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  suppressEmptyNode: true,
+})
 
 /**
  * Converts a Date object to Task Scheduler XML format (ISO 8601)
@@ -23,35 +37,16 @@ function parseDate(dateStr: string): Date | undefined {
 }
 
 /**
- * Extracts text content from an XML tag
- */
-function extractTagContent(xml: string, tagName: string): string | undefined {
-  const regex = new RegExp(`<${tagName}[^>]*>([^<]*)</${tagName}>`, 'i')
-  const match = regex.exec(xml)
-  return match ? match[1].trim() : undefined
-}
-
-/**
- * Extracts boolean value from XML tag
- */
-function extractBooleanTag(xml: string, tagName: string): boolean | undefined {
-  const content = extractTagContent(xml, tagName)
-  if (content === undefined)
-    return undefined
-  return content.toLowerCase() === 'true'
-}
-
-/**
  * Parses XML template file and returns partial TaskConfig
  */
 export function parseXmlTemplate(xmlPath: string): Partial<TaskConfig> {
-  // Try to read with both encodings and use the one that works
+  // Try to read with both encodings
   let xmlContent: string
   
   // First try UTF-8 (most common for test files)
   xmlContent = readFileSync(xmlPath, 'utf-8')
   
-  // If content looks garbled or short, try UTF-16LE
+  //If content looks garbled or short, try UTF-16LE
   if (xmlContent.length < 100 || !xmlContent.includes('<Task')) {
     try {
       xmlContent = readFileSync(xmlPath, 'utf-16le')
@@ -61,150 +56,158 @@ export function parseXmlTemplate(xmlPath: string): Partial<TaskConfig> {
     }
   }
 
+  const parsed = parser.parse(xmlContent)
+  const task = parsed.Task
+
+  if (!task) {
+    return { Triggers: [], Actions: [] }
+  }
+
   const config: Partial<TaskConfig> = {
-    triggers: [],
-    actions: [],
+    Triggers: [],
+    Actions: [],
   }
 
   // Parse RegistrationInfo
-  const regInfoMatch = /<RegistrationInfo>([\s\S]*?)<\/RegistrationInfo>/i.exec(xmlContent)
-  if (regInfoMatch) {
-    const regInfoXml = regInfoMatch[1]
-    config.registrationInfo = {
-      author: extractTagContent(regInfoXml, 'Author'),
-      description: extractTagContent(regInfoXml, 'Description'),
-      version: extractTagContent(regInfoXml, 'Version'),
-      uri: extractTagContent(regInfoXml, 'URI'),
-      documentation: extractTagContent(regInfoXml, 'Documentation'),
-      date: parseDate(extractTagContent(regInfoXml, 'Date') || ''),
+  if (task.RegistrationInfo) {
+    const regInfo = task.RegistrationInfo
+    config.RegistrationInfo = {
+      Author: regInfo.Author,
+      Description: regInfo.Description,
+      Version: regInfo.Version,
+      URI: regInfo.URI,
+      Documentation: regInfo.Documentation,
+      Date: parseDate(regInfo.Date),
     }
-
-    // Legacy fields for backward compatibility
-    config.author = config.registrationInfo.author
-    config.description = config.registrationInfo.description
   }
 
   // Parse Triggers
-  const triggersMatch = /<Triggers>([\s\S]*?)<\/Triggers>/i.exec(xmlContent)
-  if (triggersMatch) {
-    const triggersXml = triggersMatch[1]
+  if (task.Triggers) {
+    const triggers = task.Triggers
 
     // Parse CalendarTrigger
-    const calendarTriggerRegex = /<CalendarTrigger>([\s\S]*?)<\/CalendarTrigger>/gi
-    let match
-    while ((match = calendarTriggerRegex.exec(triggersXml)) !== null) {
-      const triggerXml = match[1]
-      const startBoundary = extractTagContent(triggerXml, 'StartBoundary')
-      const enabled = extractBooleanTag(triggerXml, 'Enabled')
+    if (triggers.CalendarTrigger) {
+      const calendarTriggers = Array.isArray(triggers.CalendarTrigger)
+        ? triggers.CalendarTrigger
+        : [triggers.CalendarTrigger]
 
-      const trigger: Trigger = {
-        type: 'time',
-        startBoundary: startBoundary ? new Date(startBoundary) : new Date(),
-        enabled,
-      }
+      for (const ct of calendarTriggers) {
+        const trigger: Trigger = {
+          type: 'time',
+          StartBoundary: ct.StartBoundary ? new Date(ct.StartBoundary) : new Date(),
+          Enabled: ct.Enabled,
+        }
 
-      // Parse Repetition
-      const repetitionMatch = /<Repetition>([\s\S]*?)<\/Repetition>/i.exec(triggerXml)
-      if (repetitionMatch) {
-        const repXml = repetitionMatch[1]
-        const interval = extractTagContent(repXml, 'Interval')
-        const duration = extractTagContent(repXml, 'Duration')
-        const stopAtDurationEnd = extractBooleanTag(repXml, 'StopAtDurationEnd')
-
-        if (interval) {
-          trigger.repetition = {
-            interval,
-            duration,
-            stopAtDurationEnd,
+        // Parse Repetition
+        if (ct.Repetition) {
+          trigger.Repetition = {
+            Interval: ct.Repetition.Interval,
+            Duration: ct.Repetition.Duration,
+            StopAtDurationEnd: ct.Repetition.StopAtDurationEnd,
           }
         }
-      }
 
-      config.triggers!.push(trigger)
+        config.Triggers!.push(trigger)
+      }
     }
 
     // Parse LogonTrigger
-    const logonTriggerRegex = /<LogonTrigger>([\s\S]*?)<\/LogonTrigger>/gi
-    while ((match = logonTriggerRegex.exec(triggersXml)) !== null) {
-      const triggerXml = match[1]
-      config.triggers!.push({
-        type: 'logon',
-        enabled: extractBooleanTag(triggerXml, 'Enabled'),
-        userId: extractTagContent(triggerXml, 'UserId'),
-      })
+    if (triggers.LogonTrigger) {
+      const logonTriggers = Array.isArray(triggers.LogonTrigger)
+        ? triggers.LogonTrigger
+        : [triggers.LogonTrigger]
+
+      for (const lt of logonTriggers) {
+        config.Triggers!.push({
+          type: 'logon',
+          Enabled: lt.Enabled,
+          UserId: lt.UserId,
+        })
+      }
     }
 
     // Parse BootTrigger (Startup)
-    const bootTriggerRegex = /<BootTrigger>([\s\S]*?)<\/BootTrigger>/gi
-    while ((match = bootTriggerRegex.exec(triggersXml)) !== null) {
-      const triggerXml = match[1]
-      config.triggers!.push({
-        type: 'startup',
-        enabled: extractBooleanTag(triggerXml, 'Enabled'),
-        delay: extractTagContent(triggerXml, 'Delay'),
-      })
+    if (triggers.BootTrigger) {
+      const bootTriggers = Array.isArray(triggers.BootTrigger)
+        ? triggers.BootTrigger
+        : [triggers.BootTrigger]
+
+      for (const bt of bootTriggers) {
+        config.Triggers!.push({
+          type: 'startup',
+          Enabled: bt.Enabled,
+          Delay: bt.Delay,
+        })
+      }
     }
   }
 
   // Parse Actions
-  const actionsMatch = /<Actions[^>]*>([\s\S]*?)<\/Actions>/i.exec(xmlContent)
-  if (actionsMatch) {
-    const actionsXml = actionsMatch[1]
-    const execRegex = /<Exec>([\s\S]*?)<\/Exec>/gi
-    let match
-    while ((match = execRegex.exec(actionsXml)) !== null) {
-      const execXml = match[1]
+  if (task.Actions?.Exec) {
+    const execs = Array.isArray(task.Actions.Exec)
+      ? task.Actions.Exec
+      : [task.Actions.Exec]
+
+    for (const exec of execs) {
       const action: ExecAction = {
-        path: extractTagContent(execXml, 'Command') || '',
-        arguments: extractTagContent(execXml, 'Arguments'),
-        workingDirectory: extractTagContent(execXml, 'WorkingDirectory'),
+        Command: exec.Command || '',
+        Arguments: exec.Arguments,
+        WorkingDirectory: exec.WorkingDirectory,
       }
-      config.actions!.push(action)
+      config.Actions!.push(action)
     }
   }
 
-  // Parse Principal
-  const principalMatch = /<Principal[^>]*>([\s\S]*?)<\/Principal>/i.exec(xmlContent)
-  if (principalMatch) {
-    const principalXml = principalMatch[1]
-    config.principal = {
-      userId: extractTagContent(principalXml, 'UserId'),
-      logonType: extractTagContent(principalXml, 'LogonType') as Principal['logonType'],
-      runLevel: extractTagContent(principalXml, 'RunLevel') as Principal['runLevel'],
+  // Parse Principal (wrapped in Principals)
+  if (task.Principals?.Principal) {
+    const principalData = task.Principals.Principal
+    config.Principals = {
+      Principal: {
+        UserId: principalData.UserId,
+        LogonType: principalData.LogonType,
+        RunLevel: principalData.RunLevel,
+        GroupId: principalData.GroupId,
+        DisplayName: principalData.DisplayName,
+      },
+    }
+  }
+  // Fallback: support old format without Principals wrapper
+  else if (task.Principal) {
+    config.Principals = {
+      Principal: {
+        UserId: task.Principal.UserId,
+        LogonType: task.Principal.LogonType,
+        RunLevel: task.Principal.RunLevel,
+        GroupId: task.Principal.GroupId,
+        DisplayName: task.Principal.DisplayName,
+      },
     }
   }
 
   // Parse Settings
-  const settingsMatch = /<Settings>([\s\S]*?)<\/Settings>/i.exec(xmlContent)
-  if (settingsMatch) {
-    const settingsXml = settingsMatch[1]
-    config.settings = {
-      enabled: extractBooleanTag(settingsXml, 'Enabled'),
-      hidden: extractBooleanTag(settingsXml, 'Hidden'),
-      allowDemandStart: extractBooleanTag(settingsXml, 'AllowStartOnDemand'),
-      allowHardTerminate: extractBooleanTag(settingsXml, 'AllowHardTerminate'),
-      disallowStartIfOnBatteries: extractBooleanTag(settingsXml, 'DisallowStartIfOnBatteries'),
-      stopIfGoingOnBatteries: extractBooleanTag(settingsXml, 'StopIfGoingOnBatteries'),
-      startWhenAvailable: extractBooleanTag(settingsXml, 'StartWhenAvailable'),
-      runOnlyIfNetworkAvailable: extractBooleanTag(settingsXml, 'RunOnlyIfNetworkAvailable'),
-      runOnlyIfIdle: extractBooleanTag(settingsXml, 'RunOnlyIfIdle'),
-      wakeToRun: extractBooleanTag(settingsXml, 'WakeToRun'),
-      executionTimeLimit: extractTagContent(settingsXml, 'ExecutionTimeLimit'),
-      priority: extractTagContent(settingsXml, 'Priority') ? Number.parseInt(extractTagContent(settingsXml, 'Priority')!) : undefined,
-      multipleInstancesPolicy: extractTagContent(settingsXml, 'MultipleInstancesPolicy') as TaskSettings['multipleInstancesPolicy'],
+  if (task.Settings) {
+    const settings = task.Settings
+    config.Settings = {
+      Enabled: settings.Enabled,
+      Hidden: settings.Hidden,
+      AllowDemandStart: settings.AllowStartOnDemand,
+      AllowHardTerminate: settings.AllowHardTerminate,
+      DisallowStartIfOnBatteries: settings.DisallowStartIfOnBatteries,
+      StopIfGoingOnBatteries: settings.StopIfGoingOnBatteries,
+      StartWhenAvailable: settings.StartWhenAvailable,
+      RunOnlyIfNetworkAvailable: settings.RunOnlyIfNetworkAvailable,
+      RunOnlyIfIdle: settings.RunOnlyIfIdle,
+      WakeToRun: settings.WakeToRun,
+      ExecutionTimeLimit: settings.ExecutionTimeLimit,
+      Priority: settings.Priority ? Number.parseInt(settings.Priority) : undefined,
+      MultipleInstancesPolicy: settings.MultipleInstancesPolicy,
     }
 
     // Parse RestartOnFailure
-    const restartMatch = /<RestartOnFailure>([\s\S]*?)<\/RestartOnFailure>/i.exec(settingsXml)
-    if (restartMatch) {
-      const restartXml = restartMatch[1]
-      const interval = extractTagContent(restartXml, 'Interval')
-      const count = extractTagContent(restartXml, 'Count')
-      if (interval && count) {
-        config.settings.restartOnFailure = {
-          interval,
-          count: Number.parseInt(count),
-        }
+    if (settings.RestartOnFailure) {
+      config.Settings.RestartOnFailure = {
+        Interval: settings.RestartOnFailure.Interval,
+        Count: Number.parseInt(settings.RestartOnFailure.Count),
       }
     }
   }
@@ -213,152 +216,159 @@ export function parseXmlTemplate(xmlPath: string): Partial<TaskConfig> {
 }
 
 /**
- * Escapes XML special characters
- */
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-/**
- * Generates XML for a trigger
- */
-function generateTriggerXml(trigger: Trigger, _index: number): string {
-
-  if (trigger.type === 'time') {
-    const repetition = trigger.repetition
-      ? `
-      <Repetition>
-        <Interval>${escapeXml(trigger.repetition.interval)}</Interval>
-        ${trigger.repetition.duration ? `<Duration>${escapeXml(trigger.repetition.duration)}</Duration>` : ''}
-        ${trigger.repetition.stopAtDurationEnd !== undefined ? `<StopAtDurationEnd>${trigger.repetition.stopAtDurationEnd}</StopAtDurationEnd>` : ''}
-      </Repetition>`
-      : ''
-
-    return `
-    <CalendarTrigger>
-      <StartBoundary>${formatDate(trigger.startBoundary)}</StartBoundary>
-      <Enabled>${trigger.enabled ?? true}</Enabled>
-      <ScheduleByDay>
-        <DaysInterval>1</DaysInterval>
-      </ScheduleByDay>${repetition}
-    </CalendarTrigger>`
-  }
-
-  if (trigger.type === 'logon') {
-    return `
-    <LogonTrigger>
-      <Enabled>${trigger.enabled ?? true}</Enabled>
-      ${trigger.userId ? `<UserId>${escapeXml(trigger.userId)}</UserId>` : ''}
-    </LogonTrigger>`
-  }
-
-  if (trigger.type === 'startup') {
-    return `
-    <BootTrigger>
-      <Enabled>${trigger.enabled ?? true}</Enabled>
-      ${trigger.delay ? `<Delay>${escapeXml(trigger.delay)}</Delay>` : ''}
-    </BootTrigger>`
-  }
-
-  return ''
-}
-
-/**
  * Converts a TaskConfig to Windows Task Scheduler XML format
  */
 export function toXml(config: TaskConfig): string {
   const {
-    description,
-    author,
-    registrationInfo,
-    triggers,
-    actions,
-    principal,
-    settings,
+    RegistrationInfo: registrationInfo,
+    Triggers: triggers,
+    Actions: actions,
+    Principals: principals,
+    Settings: settings,
   } = config
 
-  // Merge legacy fields with registrationInfo for backward compatibility
-  const regInfo = {
-    ...registrationInfo,
-    // Only use legacy fields if not already in registrationInfo
-    author: registrationInfo?.author || author,
-    description: registrationInfo?.description || description,
+  // Build triggers
+  const triggersObj: any = {}
+  
+  for (const trigger of triggers) {
+    if (trigger.type === 'time') {
+      if (!triggersObj.CalendarTrigger) {
+        triggersObj.CalendarTrigger = []
+      }
+      
+      const calendarTrigger: any = {
+        StartBoundary: formatDate(trigger.StartBoundary),
+        Enabled: trigger.Enabled ?? true,
+        ScheduleByDay: {
+          DaysInterval: 1,
+        },
+      }
+
+      if (trigger.Repetition) {
+        calendarTrigger.Repetition = {
+          Interval: trigger.Repetition.Interval,
+          ...(trigger.Repetition.Duration && { Duration: trigger.Repetition.Duration }),
+          ...(trigger.Repetition.StopAtDurationEnd !== undefined && { 
+            StopAtDurationEnd: trigger.Repetition.StopAtDurationEnd 
+          }),
+        }
+      }
+
+      triggersObj.CalendarTrigger.push(calendarTrigger)
+    }
+    else if (trigger.type === 'logon') {
+      if (!triggersObj.LogonTrigger) {
+        triggersObj.LogonTrigger = []
+      }
+      
+      triggersObj.LogonTrigger.push({
+        Enabled: trigger.Enabled ?? true,
+        ...(trigger.UserId && { UserId: trigger.UserId }),
+      })
+    }
+    else if (trigger.type === 'startup') {
+      if (!triggersObj.BootTrigger) {
+        triggersObj.BootTrigger = []
+      }
+      
+      triggersObj.BootTrigger.push({
+        Enabled: trigger.Enabled ?? true,
+        ...(trigger.Delay && { Delay: trigger.Delay }),
+      })
+    }
   }
 
-  const triggersXml = triggers.map((trigger, index) => generateTriggerXml(trigger, index)).join('')
+  // Build actions
+  const actionsObj = {
+    '@_Context': 'Author',
+    Exec: actions.map(action => ({
+      Command: action.Command,
+      ...(action.Arguments && { Arguments: action.Arguments }),
+      ...(action.WorkingDirectory && { WorkingDirectory: action.WorkingDirectory }),
+    })),
+  }
 
-  const actionsXml = actions
-    .map(
-      action => `
-      <Exec>
-        <Command>${escapeXml(action.path)}</Command>
-        ${action.arguments ? `<Arguments>${escapeXml(action.arguments)}</Arguments>` : ''}
-        ${action.workingDirectory ? `<WorkingDirectory>${escapeXml(action.workingDirectory)}</WorkingDirectory>` : ''}
-      </Exec>`,
-    )
-    .join('')
+  // Build principal (wrapped in Principals)
+  const principalObj = {
+    '@_id': 'Author',
+    ...(principals?.Principal.UserId && { UserId: principals.Principal.UserId }),
+    ...(principals?.Principal.LogonType && { LogonType: principals.Principal.LogonType }),
+    ...(principals?.Principal.RunLevel && { RunLevel: principals.Principal.RunLevel }),
+    ...(principals?.Principal.GroupId && { GroupId: principals.Principal.GroupId }),
+    ...(principals?.Principal.DisplayName && { DisplayName: principals.Principal.DisplayName }),
+  }
 
-  // Principal (user context) - no wrapper element per schema
-  const principalXml = `
-  <Principal id="Author">
-    ${principal?.userId ? `<UserId>${escapeXml(principal.userId)}</UserId>` : ''}
-    ${principal?.logonType ? `<LogonType>${principal.logonType}</LogonType>` : ''}
-    ${principal?.runLevel ? `<RunLevel>${principal.runLevel}</RunLevel>` : ''}
-  </Principal>`
+  const principalsObj = {
+    Principal: principalObj,
+  }
 
-  // Settings with proper order per schema
-  const settingsXml = `
-  <Settings>
-    <MultipleInstancesPolicy>${settings?.multipleInstancesPolicy ?? 'IgnoreNew'}</MultipleInstancesPolicy>
-    <DisallowStartIfOnBatteries>${settings?.disallowStartIfOnBatteries ?? false}</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>${settings?.stopIfGoingOnBatteries ?? true}</StopIfGoingOnBatteries>
-    <AllowHardTerminate>${settings?.allowHardTerminate ?? true}</AllowHardTerminate>
-    <StartWhenAvailable>${settings?.startWhenAvailable ?? false}</StartWhenAvailable>
-    <RunOnlyIfNetworkAvailable>${settings?.runOnlyIfNetworkAvailable ?? false}</RunOnlyIfNetworkAvailable>
-    <IdleSettings>
-      <Duration>PT10M</Duration>
-      <WaitTimeout>PT1H</WaitTimeout>
-      <StopOnIdleEnd>true</StopOnIdleEnd>
-      <RestartOnIdle>false</RestartOnIdle>
-    </IdleSettings>
-    <AllowStartOnDemand>${settings?.allowDemandStart ?? true}</AllowStartOnDemand>
-    <Enabled>${settings?.enabled ?? true}</Enabled>
-    <Hidden>${settings?.hidden ?? false}</Hidden>
-    <RunOnlyIfIdle>${settings?.runOnlyIfIdle ?? false}</RunOnlyIfIdle>
-    <WakeToRun>${settings?.wakeToRun ?? false}</WakeToRun>
-    <ExecutionTimeLimit>${settings?.executionTimeLimit ?? 'PT72H'}</ExecutionTimeLimit>
-    <Priority>${settings?.priority ?? 7}</Priority>${
-  settings?.restartOnFailure
-    ? `
-    <RestartOnFailure>
-      <Interval>${escapeXml(settings.restartOnFailure.interval)}</Interval>
-      <Count>${settings.restartOnFailure.count}</Count>
-    </RestartOnFailure>`
-    : ''
-}
-  </Settings>`
+  // Build settings
+  const settingsObj: any = {
+    MultipleInstancesPolicy: settings?.MultipleInstancesPolicy ?? 'IgnoreNew',
+    DisallowStartIfOnBatteries: settings?.DisallowStartIfOnBatteries ?? false,
+    StopIfGoingOnBatteries: settings?.StopIfGoingOnBatteries ?? true,
+    AllowHardTerminate: settings?.AllowHardTerminate ?? true,
+    StartWhenAvailable: settings?.StartWhenAvailable ?? false,
+    RunOnlyIfNetworkAvailable: settings?.RunOnlyIfNetworkAvailable ?? false,
+    IdleSettings: {
+      Duration: 'PT10M',
+      WaitTimeout: 'PT1H',
+      StopOnIdleEnd: true,
+      RestartOnIdle: false,
+    },
+    AllowStartOnDemand: settings?.AllowDemandStart ?? true,
+    Enabled: settings?.Enabled ?? true,
+    Hidden: settings?.Hidden ?? false,
+    RunOnlyIfIdle: settings?.RunOnlyIfIdle ?? false,
+    WakeToRun: settings?.WakeToRun ?? false,
+    ExecutionTimeLimit: settings?.ExecutionTimeLimit ?? 'PT72H',
+    Priority: settings?.Priority ?? 7,
+  }
 
-  // Build RegistrationInfo XML
-  const registrationInfoXml = `
-  <RegistrationInfo>
-    ${regInfo.date ? `<Date>${formatDate(regInfo.date)}</Date>` : ''}
-    ${regInfo.author ? `<Author>${escapeXml(regInfo.author)}</Author>` : ''}
-    ${regInfo.version ? `<Version>${escapeXml(regInfo.version)}</Version>` : ''}
-    ${regInfo.description ? `<Description>${escapeXml(regInfo.description)}</Description>` : ''}
-    ${regInfo.uri ? `<URI>${escapeXml(regInfo.uri)}</URI>` : ''}
-    ${regInfo.documentation ? `<Documentation>${escapeXml(regInfo.documentation)}</Documentation>` : ''}
-  </RegistrationInfo>`
+  if (settings?.RestartOnFailure) {
+    settingsObj.RestartOnFailure = {
+      Interval: settings.RestartOnFailure.Interval,
+      Count: settings.RestartOnFailure.Count,
+    }
+  }
 
-  return `<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">${registrationInfoXml}
-  <Triggers>${triggersXml}
-  </Triggers>${principalXml}${settingsXml}
-  <Actions Context="Author">${actionsXml}
-  </Actions>
-</Task>`
+  // Build registration info
+  const registrationInfoObj: any = {}
+  if (registrationInfo?.Date) {
+    registrationInfoObj.Date = formatDate(registrationInfo.Date)
+  }
+  if (registrationInfo?.Author) {
+    registrationInfoObj.Author = registrationInfo.Author
+  }
+  if (registrationInfo?.Version) {
+    registrationInfoObj.Version = registrationInfo.Version
+  }
+  if (registrationInfo?.Description) {
+    registrationInfoObj.Description = registrationInfo.Description
+  }
+  if (registrationInfo?.URI) {
+    registrationInfoObj.URI = registrationInfo.URI
+  }
+  if (registrationInfo?.Documentation) {
+    registrationInfoObj.Documentation = registrationInfo.Documentation
+  }
+
+  // Build the complete task object
+  const taskObj = {
+    '?xml': {
+      '@_version': '1.0',
+      '@_encoding': 'UTF-16',
+    },
+    Task: {
+      '@_version': '1.3',
+      '@_xmlns': 'http://schemas.microsoft.com/windows/2004/02/mit/task',
+      ...(Object.keys(registrationInfoObj).length > 0 && { RegistrationInfo: registrationInfoObj }),
+      Triggers: triggersObj,
+      Principals: principalsObj,
+      Settings: settingsObj,
+      Actions: actionsObj,
+    },
+  }
+
+  return builder.build(taskObj)
 }

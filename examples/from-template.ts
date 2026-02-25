@@ -14,7 +14,7 @@ async function createTaskFromTemplate() {
   // Load template XML and customize it
   const templatePath = join(__dirname, 'template.xml')
   
-  const task = TaskSchedulerBuilder.create(templatePath)
+  const task = TaskSchedulerBuilder.createFrom(templatePath)
     // Override/customize the template values
     .name('CustomizedMaintenanceTask')
     .description('Customized maintenance task based on template')
@@ -27,9 +27,9 @@ async function createTaskFromTemplate() {
     
     // Override some settings
     .setSettings({
-      enabled: true,
-      priority: 3,
-      executionTimeLimit: 'PT3H',
+      Enabled: true,
+      Priority: 3,
+      ExecutionTimeLimit: 'PT3H',
     })
     .build()
 
@@ -38,8 +38,8 @@ async function createTaskFromTemplate() {
   if (result.success) {
     console.log('✓ Task created from template successfully!')
     console.log(`  Task name: ${task.name}`)
-    console.log(`  Triggers: ${task.triggers.length}`)
-    console.log(`  Actions: ${task.actions.length}`)
+    console.log(`  Triggers: ${task.Triggers.length}`)
+    console.log(`  Actions: ${task.Actions.length}`)
     console.log(`  Template loaded from: ${templatePath}`)
   }
   else {
@@ -51,18 +51,18 @@ async function createTaskFromTemplate() {
 async function inspectTemplate() {
   const templatePath = join(__dirname, 'template.xml')
   
-  const task = TaskSchedulerBuilder.create(templatePath)
+  const task = TaskSchedulerBuilder.createFrom(templatePath)
     .name('InspectTemplateTask')
     .build()
 
   console.log('\n=== Template Values ===')
-  console.log('Author:', task.registrationInfo?.author)
-  console.log('Description:', task.registrationInfo?.description)
-  console.log('Version:', task.registrationInfo?.version)
-  console.log('Run Level:', task.principal?.runLevel)
-  console.log('Priority:', task.settings?.priority)
-  console.log('Triggers:', task.triggers.length)
-  console.log('Actions:', task.actions.length)
+  console.log('Author:', task.RegistrationInfo?.Author)
+  console.log('Description:', task.RegistrationInfo?.Description)
+  console.log('Version:', task.RegistrationInfo?.Version)
+  console.log('Run Level:', task.Principals?.Principal.RunLevel)
+  console.log('Priority:', task.Settings?.Priority)
+  console.log('Triggers:', task.Triggers.length)
+  console.log('Actions:', task.Actions.length)
 }
 
 createTaskFromTemplate()

@@ -5,7 +5,7 @@
 import { TaskSchedulerBuilder, createTask } from 'task-scheduler-builder'
 
 async function createComplexTask() {
-  const task = TaskSchedulerBuilder.create()
+  const task = TaskSchedulerBuilder.createFrom()
     .name('ComplexMaintenanceTask')
     .description('Comprehensive system maintenance with multiple triggers')
     .author('IT Operations')
@@ -23,28 +23,28 @@ async function createComplexTask() {
 
     // Principal configuration
     .setPrincipal({
-      userId: 'SYSTEM',
-      runLevel: 'HighestAvailable',
-      logonType: 'ServiceAccount',
+      UserId: 'SYSTEM',
+      RunLevel: 'HighestAvailable',
+      LogonType: 'S4U',
     })
 
     // Advanced settings
     .setSettings({
-      enabled: true,
-      hidden: false,
-      priority: 4,
-      executionTimeLimit: 'PT4H',
-      multipleInstancesPolicy: 'Queue',
-      allowDemandStart: true,
-      allowHardTerminate: true,
-      disallowStartIfOnBatteries: false,
-      stopIfGoingOnBatteries: false,
-      startWhenAvailable: true,
-      runOnlyIfNetworkAvailable: false,
-      wakeToRun: false,
-      restartOnFailure: {
-        interval: 'PT15M',
-        count: 3,
+      Enabled: true,
+      Hidden: false,
+      Priority: 4,
+      ExecutionTimeLimit: 'PT4H',
+      MultipleInstancesPolicy: 'Queue',
+      AllowDemandStart: true,
+      AllowHardTerminate: true,
+      DisallowStartIfOnBatteries: false,
+      StopIfGoingOnBatteries: false,
+      StartWhenAvailable: true,
+      RunOnlyIfNetworkAvailable: false,
+      WakeToRun: false,
+      RestartOnFailure: {
+        Interval: 'PT15M',
+        Count: 3,
       },
     })
     .build()
@@ -54,9 +54,9 @@ async function createComplexTask() {
   if (result.success) {
     console.log('✓ Complex maintenance task created successfully!')
     console.log(`  Task name: ${task.name}`)
-    console.log(`  Triggers: ${task.triggers.length}`)
-    console.log(`  Actions: ${task.actions.length}`)
-    console.log(`  Run level: ${task.principal?.runLevel}`)
+    console.log(`  Triggers: ${task.Triggers.length}`)
+    console.log(`  Actions: ${task.Actions.length}`)
+    console.log(`  Run level: ${task.Principals?.Principal.RunLevel}`)
   }
   else {
     console.error('✗ Failed to create task:', result.error)

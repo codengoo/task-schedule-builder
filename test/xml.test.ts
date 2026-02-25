@@ -4,7 +4,7 @@ import { toXml } from '../src/xml'
 
 describe('xml generation', () => {
   it('should generate valid XML for a basic task', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .description('Test description')
       .addTimeTrigger(new Date('2024-01-01T10:00:00Z'))
@@ -14,7 +14,7 @@ describe('xml generation', () => {
     const xml = toXml(task)
 
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-16"?>')
-    expect(xml).toContain('<Task version="1.2"')
+    expect(xml).toContain('<Task version=\"1.3\"')
     expect(xml).toContain('<Description>Test description</Description>')
     expect(xml).toContain('<Command>notepad.exe</Command>')
     expect(xml).toContain('<CalendarTrigger>')
@@ -22,7 +22,7 @@ describe('xml generation', () => {
   })
 
   it('should escape XML special characters', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .description('Test with <special> & "characters"')
       .addTimeTrigger(new Date())
@@ -36,7 +36,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with multiple triggers', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date())
       .addLogonTrigger()
@@ -52,7 +52,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with repetition', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date(), {
         repetitionInterval: 'PT1H',
@@ -71,7 +71,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with logon trigger userId', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addLogonTrigger({ userId: 'DOMAIN\\User' })
       .addAction('test.exe')
@@ -84,7 +84,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with startup trigger delay', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addStartupTrigger({ delay: 'PT5M' })
       .addAction('test.exe')
@@ -97,7 +97,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with multiple actions', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date())
       .addAction('cmd.exe', '/c echo hello', 'C:\\')
@@ -113,26 +113,27 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with principal configuration', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date())
       .addAction('test.exe')
       .setPrincipal({
-        userId: 'Administrator',
-        runLevel: 'HighestAvailable',
-        logonType: 'Password',
+        UserId: 'Administrator',
+        RunLevel: 'HighestAvailable',
+        LogonType: 'Password',
       })
       .build()
 
     const xml = toXml(task)
 
+    expect(xml).toContain('<Principals>')
     expect(xml).toContain('<UserId>Administrator</UserId>')
     expect(xml).toContain('<RunLevel>HighestAvailable</RunLevel>')
     expect(xml).toContain('<LogonType>Password</LogonType>')
   })
 
   it('should generate XML with default principal when not specified', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date())
       .addAction('test.exe')
@@ -142,24 +143,24 @@ describe('xml generation', () => {
 
     // When no principal is specified, the XML should not include default values
     // Windows Task Scheduler will use appropriate defaults
-    expect(xml).toContain('<Principal id="Author">')
-    expect(xml).toContain('</Principal>')
+    expect(xml).toContain('<Principals>')
+    expect(xml).toContain('<Principal id="Author"')
   })
 
   it('should generate XML with custom settings', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date())
       .addAction('test.exe')
       .setSettings({
-        enabled: false,
-        hidden: true,
-        priority: 3,
-        executionTimeLimit: 'PT1H',
-        multipleInstancesPolicy: 'Parallel',
-        allowDemandStart: false,
-        startWhenAvailable: true,
-        wakeToRun: true,
+        Enabled: false,
+        Hidden: true,
+        Priority: 3,
+        ExecutionTimeLimit: 'PT1H',
+        MultipleInstancesPolicy: 'Parallel',
+        AllowDemandStart: false,
+        StartWhenAvailable: true,
+        WakeToRun: true,
       })
       .build()
 
@@ -176,14 +177,14 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with restart on failure', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date())
       .addAction('test.exe')
       .setSettings({
-        restartOnFailure: {
-          interval: 'PT10M',
-          count: 3,
+        RestartOnFailure: {
+          Interval: 'PT10M',
+          Count: 3,
         },
       })
       .build()
@@ -196,7 +197,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with author', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .author('John Doe')
       .addTimeTrigger(new Date())
@@ -209,7 +210,7 @@ describe('xml generation', () => {
   })
 
   it('should generate well-formed XML structure', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .description('Test')
       .addTimeTrigger(new Date())
@@ -220,13 +221,13 @@ describe('xml generation', () => {
 
     // Check basic XML structure per http://schemas.microsoft.com/windows/2004/02/mit/task
     expect(xml).toMatch(/<\?xml version="1\.0" encoding="UTF-16"\?>/)
-    expect(xml).toMatch(/<Task version="1\.2"/)
+    expect(xml).toMatch(/<Task version="1\.3"/)
     expect(xml).toContain('<RegistrationInfo>')
     expect(xml).toContain('</RegistrationInfo>')
     expect(xml).toContain('<Triggers>')
     expect(xml).toContain('</Triggers>')
-    expect(xml).toContain('<Principal id="Author">')
-    expect(xml).toContain('</Principal>')
+    expect(xml).toContain('<Principals>')
+    expect(xml).toContain('<Principal id="Author"')
     expect(xml).toContain('<Settings>')
     expect(xml).toContain('</Settings>')
     expect(xml).toContain('<Actions')
@@ -235,7 +236,7 @@ describe('xml generation', () => {
   })
 
   it('should handle disabled triggers', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .addTimeTrigger(new Date(), { enabled: false })
       .addAction('test.exe')
@@ -247,15 +248,15 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with RegistrationInfo fields', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .setRegistrationInfo({
-        author: 'John Doe',
-        description: 'Test task',
-        version: '1.2.3',
-        date: new Date('2024-01-01T10:00:00Z'),
-        uri: '\\MyTasks\\Test',
-        documentation: 'See documentation for details',
+        Author: 'John Doe',
+        Description: 'Test task',
+        Version: '1.2.3',
+        Date: new Date('2024-01-01T10:00:00Z'),
+        URI: '\\MyTasks\\Test',
+        Documentation: 'See documentation for details',
       })
       .addTimeTrigger(new Date())
       .addAction('test.exe')
@@ -272,7 +273,7 @@ describe('xml generation', () => {
   })
 
   it('should generate XML with builder helper methods for RegistrationInfo', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .author('Admin')
       .description('Test description')
@@ -295,15 +296,15 @@ describe('xml generation', () => {
   })
 
   it('should properly order RegistrationInfo elements per schema', () => {
-    const task = TaskSchedulerBuilder.create()
+    const task = TaskSchedulerBuilder.createFrom()
       .name('TestTask')
       .setRegistrationInfo({
-        documentation: 'Docs',
-        uri: '\\Test',
-        version: '1.0',
-        description: 'Desc',
-        author: 'Auth',
-        date: new Date('2024-01-01T00:00:00Z'),
+        Documentation: 'Docs',
+        URI: '\\Test',
+        Version: '1.0',
+        Description: 'Desc',
+        Author: 'Auth',
+        Date: new Date('2024-01-01T00:00:00Z'),
       })
       .addTimeTrigger(new Date())
       .addAction('test.exe')

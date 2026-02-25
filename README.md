@@ -43,7 +43,7 @@ yarn add task-scheduler-builder
 import { TaskSchedulerBuilder, createTask } from 'task-scheduler-builder'
 
 // Create a task that runs every day at 9 AM
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('MyDailyBackup')
   .description('Daily backup task')
   .author('System Administrator')
@@ -69,7 +69,7 @@ if (result.success) {
 ```typescript
 import { TaskSchedulerBuilder, createTask } from 'task-scheduler-builder'
 
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('SimpleTask')
   .description('Runs notepad every hour')
   .addTimeTrigger(new Date(), {
@@ -85,7 +85,7 @@ await createTask(task, { force: true })
 ### Task with Multiple Triggers
 
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('MultiTriggerTask')
   .description('Runs on multiple events')
   .addTimeTrigger(new Date('2024-06-01T08:00:00'))
@@ -98,7 +98,7 @@ const task = TaskSchedulerBuilder.create()
 ### Task with Highest Privileges
 
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('AdminTask')
   .description('Task requiring admin privileges')
   .addTimeTrigger(new Date())
@@ -113,7 +113,7 @@ await createTask(task, { force: true })
 ### Complex Task Configuration
 
 ```typescript
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('ComplexBackupTask')
   .description('Advanced backup with retry logic')
   .author('IT Department')
@@ -122,20 +122,20 @@ const task = TaskSchedulerBuilder.create()
   })
   .addAction('powershell.exe', '-File C:\\Backup\\backup.ps1', 'C:\\Backup')
   .setPrincipal({
-    userId: 'SYSTEM',
-    runLevel: 'HighestAvailable',
-    logonType: 'ServiceAccount',
+    UserId: 'SYSTEM',
+    RunLevel: 'HighestAvailable',
+    LogonType: 'ServiceAccount',
   })
   .setSettings({
-    enabled: true,
-    hidden: false,
-    priority: 4,
-    executionTimeLimit: 'PT2H',
-    multipleInstancesPolicy: 'Queue',
-    startWhenAvailable: true,
-    restartOnFailure: {
-      interval: 'PT10M',
-      count: 3,
+    Enabled: true,
+    Hidden: false,
+    Priority: 4,
+    ExecutionTimeLimit: 'PT2H',
+    MultipleInstancesPolicy: 'Queue',
+    StartWhenAvailable: true,
+    RestartOnFailure: {
+      Interval: 'PT10M',
+      Count: 3,
     },
   })
   .build()
@@ -147,22 +147,22 @@ await createTask(task, { force: true })
 
 ```typescript
 // Using setRegistrationInfo for comprehensive metadata
-const task = TaskSchedulerBuilder.create()
+const task = TaskSchedulerBuilder.createFrom()
   .name('EnterpriseTask')
   .setRegistrationInfo({
-    author: 'IT Department',
-    description: 'Production backup task',
-    version: '2.1.0',
-    date: new Date(),
-    uri: '\\Enterprise\\Backup\\DailyBackup',
-    documentation: 'See https://wiki.company.com/backup-procedures',
+    Author: 'IT Department',
+    Description: 'Production backup task',
+    Version: '2.1.0',
+    Date: new Date(),
+    URI: '\\Enterprise\\Backup\\DailyBackup',
+    Documentation: 'See https://wiki.company.com/backup-procedures',
   })
   .addTimeTrigger(new Date('2024-01-01T02:00:00'))
   .addAction('C:\\Scripts\\backup.ps1')
   .build()
 
 // Or use individual helper methods
-const task2 = TaskSchedulerBuilder.create()
+const task2 = TaskSchedulerBuilder.createFrom()
   .name('MyTask')
   .author('John Doe')
   .description('My custom task')
@@ -181,15 +181,15 @@ await createTask(task, { force: true })
 
 ```typescript
 // Load an existing XML template and customize it
-const task = TaskSchedulerBuilder.create('path/to/template.xml')
+const task = TaskSchedulerBuilder.createFrom('path/to/template.xml')
   .name('CustomizedTask')
   .description('Task based on template')
   // Add or override triggers
   .addLogonTrigger({ userId: 'Administrator' })
   // Template values are preserved, you can override them
   .setSettings({
-    priority: 3,
-    executionTimeLimit: 'PT3H',
+    Priority: 3,
+    ExecutionTimeLimit: 'PT3H',
   })
   .build()
 
