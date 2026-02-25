@@ -11,13 +11,14 @@ export interface Triggers {
   CalendarTrigger?: CalendarTrigger | CalendarTrigger[];
 }
 
-export type SessionStateChange =
-  | "ConsoleConnect"
-  | "ConsoleDisconnect"
-  | "RemoteConnect"
-  | "RemoteDisconnect"
-  | "SessionLock"
-  | "SessionUnlock";
+export enum SessionStateChange {
+  ConsoleConnect = "ConsoleConnect",
+  ConsoleDisconnect = "ConsoleDisconnect",
+  RemoteConnect = "RemoteConnect",
+  RemoteDisconnect = "RemoteDisconnect",
+  SessionLock = "SessionLock",
+  SessionUnlock = "SessionUnlock",
+}
 
 export interface TriggerBase {
   "@_id"?: string;

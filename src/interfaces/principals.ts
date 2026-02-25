@@ -12,52 +12,61 @@ export interface Principal {
   RequiredPrivileges?: RequiredPrivilege;
 }
 
-export type LogonType =
-  | "S4U"
-  | "InteractiveToken"
-  | "Password"
-  | "InteractiveTokenOrPassword";
+export enum LogonType {
+  S4U = "S4U",
+  InteractiveToken = "InteractiveToken",
+  Password = "Password",
+  InteractiveTokenOrPassword = "InteractiveTokenOrPassword",
+}
 
-export type RunLevel = "LeastPrivilege" | "HighestAvailable";
-export type ProcessTokenSidType = "None" | "Unrestricted";
+export enum RunLevel {
+  LeastPrivilege = "LeastPrivilege",
+  HighestAvailable = "HighestAvailable",
+}
+
+export enum ProcessTokenSidType {
+  None = "None",
+  Unrestricted = "Unrestricted",
+}
 
 export interface RequiredPrivilege {
   Privilege: PrivilegeType | PrivilegeType[];
 }
 
-export type PrivilegeType =
-  | "SeCreateTokenPrivilege"
-  | "SeAssignPrimaryTokenPrivilege"
-  | "SeLockMemoryPrivilege"
-  | "SeIncreaseQuotaPrivilege"
-  | "SeUnsolicitedInputPrivilege"
-  | "SeMachineAccountPrivilege"
-  | "SeTcbPrivilege"
-  | "SeSecurityPrivilege"
-  | "SeTakeOwnershipPrivilege"
-  | "SeLoadDriverPrivilege"
-  | "SeSystemProfilePrivilege"
-  | "SeSystemtimePrivilege"
-  | "SeProfileSingleProcessPrivilege"
-  | "SeIncreaseBasePriorityPrivilege"
-  | "SeCreatePagefilePrivilege"
-  | "SeCreatePermanentPrivilege"
-  | "SeBackupPrivilege"
-  | "SeRestorePrivilege"
-  | "SeShutdownPrivilege"
-  | "SeDebugPrivilege"
-  | "SeAuditPrivilege"
-  | "SeSystemEnvironmentPrivilege"
-  | "SeChangeNotifyPrivilege"
-  | "SeRemoteShutdownPrivilege"
-  | "SeUndockPrivilege"
-  | "SeSyncAgentPrivilege"
-  | "SeEnableDelegationPrivilege"
-  | "SeManageVolumePrivilege"
-  | "SeImpersonatePrivilege"
-  | "SeCreateGlobalPrivilege"
-  | "SeTrustedCredManAccessPrivilege"
-  | "SeRelabelPrivilege"
-  | "SeIncreaseWorkingSetPrivilege"
-  | "SeTimeZonePrivilege"
-  | "SeCreateSymbolicLinkPrivilege";
+export enum PrivilegeType {
+  SeCreateTokenPrivilege = "SeCreateTokenPrivilege",
+  SeAssignPrimaryTokenPrivilege = "SeAssignPrimaryTokenPrivilege",
+  SeLockMemoryPrivilege = "SeLockMemoryPrivilege",
+  SeIncreaseQuotaPrivilege = "SeIncreaseQuotaPrivilege",
+  SeUnsolicitedInputPrivilege = "SeUnsolicitedInputPrivilege",
+  SeMachineAccountPrivilege = "SeMachineAccountPrivilege",
+  SeTcbPrivilege = "SeTcbPrivilege",
+  SeSecurityPrivilege = "SeSecurityPrivilege",
+  SeTakeOwnershipPrivilege = "SeTakeOwnershipPrivilege",
+  SeLoadDriverPrivilege = "SeLoadDriverPrivilege",
+  SeSystemProfilePrivilege = "SeSystemProfilePrivilege",
+  SeSystemtimePrivilege = "SeSystemtimePrivilege",
+  SeProfileSingleProcessPrivilege = "SeProfileSingleProcessPrivilege",
+  SeIncreaseBasePriorityPrivilege = "SeIncreaseBasePriorityPrivilege",
+  SeCreatePagefilePrivilege = "SeCreatePagefilePrivilege",
+  SeCreatePermanentPrivilege = "SeCreatePermanentPrivilege",
+  SeBackupPrivilege = "SeBackupPrivilege",
+  SeRestorePrivilege = "SeRestorePrivilege",
+  SeShutdownPrivilege = "SeShutdownPrivilege",
+  SeDebugPrivilege = "SeDebugPrivilege",
+  SeAuditPrivilege = "SeAuditPrivilege",
+  SeSystemEnvironmentPrivilege = "SeSystemEnvironmentPrivilege",
+  SeChangeNotifyPrivilege = "SeChangeNotifyPrivilege",
+  SeRemoteShutdownPrivilege = "SeRemoteShutdownPrivilege",
+  SeUndockPrivilege = "SeUndockPrivilege",
+  SeSyncAgentPrivilege = "SeSyncAgentPrivilege",
+  SeEnableDelegationPrivilege = "SeEnableDelegationPrivilege",
+  SeManageVolumePrivilege = "SeManageVolumePrivilege",
+  SeImpersonatePrivilege = "SeImpersonatePrivilege",
+  SeCreateGlobalPrivilege = "SeCreateGlobalPrivilege",
+  SeTrustedCredManAccessPrivilege = "SeTrustedCredManAccessPrivilege",
+  SeRelabelPrivilege = "SeRelabelPrivilege",
+  SeIncreaseWorkingSetPrivilege = "SeIncreaseWorkingSetPrivilege",
+  SeTimeZonePrivilege = "SeTimeZonePrivilege",
+  SeCreateSymbolicLinkPrivilege = "SeCreateSymbolicLinkPrivilege",
+}

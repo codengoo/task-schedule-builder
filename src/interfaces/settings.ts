@@ -21,11 +21,12 @@ export interface Settings {
   DisallowStartOnRemoteAppSession?: boolean;
 }
 
-export type MultipleInstancesPolicy =
-  | "IgnoreNew"
-  | "Queue"
-  | "Parallel"
-  | "StopExisting";
+export enum MultipleInstancesPolicy {
+  IgnoreNew = "IgnoreNew",
+  Queue = "Queue",
+  Parallel = "Parallel",
+  StopExisting = "StopExisting",
+}
 
 export interface IdleSettings {
   Duration?: string;
