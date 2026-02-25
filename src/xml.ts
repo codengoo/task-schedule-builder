@@ -45,7 +45,22 @@ function extractBooleanTag(xml: string, tagName: string): boolean | undefined {
  * Parses XML template file and returns partial TaskConfig
  */
 export function parseXmlTemplate(xmlPath: string): Partial<TaskConfig> {
-  const xmlContent = readFileSync(xmlPath, 'utf-16le')
+  // Try to read with both encodings and use the one that works
+  let xmlContent: string
+  
+  // First try UTF-8 (most common for test files)
+  xmlContent = readFileSync(xmlPath, 'utf-8')
+  
+  // If content looks garbled or short, try UTF-16LE
+  if (xmlContent.length < 100 || !xmlContent.includes('<Task')) {
+    try {
+      xmlContent = readFileSync(xmlPath, 'utf-16le')
+    }
+    catch {
+      // Use UTF-8 if UTF-16LE fails
+    }
+  }
+
   const config: Partial<TaskConfig> = {
     triggers: [],
     actions: [],

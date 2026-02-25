@@ -282,7 +282,7 @@ export class TaskSchedulerBuilder {
    * // Create from XML template
    * const builder = TaskSchedulerBuilder.create('template.xml')
    */
-  static create(xmlTemplatePath?: string): TaskSchedulerBuilder {
+  static createFrom(xmlTemplatePath?: string): TaskSchedulerBuilder {
     return new TaskSchedulerBuilder(xmlTemplatePath)
   }
 }
