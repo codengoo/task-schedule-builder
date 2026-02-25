@@ -145,6 +145,8 @@ export interface RegistrationInfo {
   Date?: Date
   Documentation?: string
   URI?: string
+  SecurityDescriptor: string
+  Source?: string
 }
 
 /**

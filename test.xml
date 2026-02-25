@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+    <RegistrationInfo>
+        <Date>2025-11-15T23:02:12</Date>
+        <Author>DESKTOP-S6JP0R6\Admin</Author>
+        <URI>\Set Countdown Background</URI>
+        <aaa></aaa>
+    </RegistrationInfo>
+
+    <Triggers>
+        <CalendarTrigger>
+            <Repetition>
+                <Interval>PT1H</Interval>
+                <Duration>P1D</Duration>
+                <StopAtDurationEnd>true</StopAtDurationEnd>
+            </Repetition>
+            <StartBoundary>2025-11-15T00:00:00</StartBoundary>
+            <Enabled>true</Enabled>
+            <ScheduleByDay>
+                <DaysInterval>1</DaysInterval>
+            </ScheduleByDay>
+        </CalendarTrigger>
+        <CalendarTrigger>
+            <Repetition>
+                <Interval>PT1H</Interval>
+                <Duration>P1D</Duration>
+                <StopAtDurationEnd>true</StopAtDurationEnd>
+            </Repetition>
+            <StartBoundary>2025-11-15T00:00:00</StartBoundary>
+            <Enabled>true</Enabled>
+            <ScheduleByDay>
+                <DaysInterval>1</DaysInterval>
+            </ScheduleByDay>
+        </CalendarTrigger>
+    </Triggers>
+</Task>

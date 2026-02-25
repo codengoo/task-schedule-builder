@@ -10,24 +10,27 @@ const builder = new XMLBuilder({
 });
 
 const xmlFromFile = fs.readFileSync(
-  "test\\fixtures\\test-template.xml",
+  "test.xml",
   "utf-8",
 );
 
-const obj = {
-  Task: {
-    "@_version": "1.2",
-    "@_xmlns": "http://schemas.microsoft.com/windows/2004/02/mit/task",
+const obj = parser.parse(xmlFromFile);
+console.log(obj);
 
-    Actions: {
-      Exec: {
-        Command: "npm",
-      },
-    },
-  },
-};
+// const obj = {
+//   Task: {
+//     "@_version": "1.2",
+//     "@_xmlns": "http://schemas.microsoft.com/windows/2004/02/mit/task",
 
-// Convert ngược lại XML
+//     Actions: {
+//       Exec: {
+//         Command: "npm",
+//       },
+//     },
+//   },
+// };
+
+// // Convert ngược lại XML
 const xml = builder.build(obj);
 
 console.log(xml);
