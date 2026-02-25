@@ -1,15 +1,17 @@
-import { RegistrationInfo } from "./registration"
-import { Triggers } from "./triggers"
+import { Actions } from "./actions";
+import { Principals } from "./principals";
+import { RegistrationInfo } from "./registration";
+import { Settings } from "./settings";
+import { Triggers } from "./triggers";
 
 export interface Task {
-  "@_version"?: "1.2"
-  "@_xmlns"?: "http://schemas.microsoft.com/windows/2004/02/mit/task"
+  "@_version"?: "1.2";
+  "@_xmlns"?: "http://schemas.microsoft.com/windows/2004/02/mit/task";
 
-  RegistrationInfo?: RegistrationInfo
-  Triggers?: Triggers
-  //   Settings?: Settings
-  //   Principals?: Principals
-  Data?: any
-
-  //   Actions: Actions
+  RegistrationInfo?: RegistrationInfo;
+  Triggers?: Triggers;
+  Settings?: Settings;
+  Principals?: Principals;
+  Data?: any;
+  Actions: Actions;
 }

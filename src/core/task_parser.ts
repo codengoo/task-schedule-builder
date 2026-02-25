@@ -6,13 +6,13 @@ const parser = new XMLParser({
     ignoreDeclaration: true,
 });
 
-type CompositeKeyNode<T> = {
-    name: keyof T;
-    keys: AllowedKeyNode<T>[];
+type CompositeKeyNode<T extends keyof U, U> = {
+    name: T;
+    keys: AllowedKeyNode<U[T]>[];
 }
 type AllowedKeyNode<T> =
     | keyof T
-    | CompositeKeyNode<T>;
+    | CompositeKeyNode<keyof T, T>;
 
 type AllowedKeys<T> = AllowedKeyNode<T>[];
 
@@ -55,7 +55,7 @@ export class TaskParser {
             if (childData !== undefined && childData !== null) {
 
                 const nested = this.copyNotNull(
-                    childData as any,
+                    childData,
                     (key as CompositeKeyNode<T>).keys as any
                 );
 
@@ -107,18 +107,8 @@ export class TaskParser {
     }
 
     private parseTriggers(triggers: any): Triggers {
-        const keys = [
-            "BootTrigger",
-            "CalendarTrigger",
-            "IdleTrigger",
-            "LogonTrigger",
-            "TimeTrigger",
-            "RegistrationTrigger",
-        ] satisfies (keyof Triggers)[];
-
-        const result: Triggers = this.copyNotNull<Triggers>(triggers, keys);
-
-        return result;
+        const result: Triggers = {};
+       if (triggers.BootTrigger) {
     }
 
     public getTask(): Task {
