@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Date>2024-01-01T00:00:00</Date>
+    <Author>System Administrator</Author>
+    <Version>1.0.0</Version>
+    <Description>Template task for maintenance operations</Description>
+    <URI>\MyCompany\Templates\MaintenanceTemplate</URI>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2024-01-01T02:00:00</StartBoundary>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+      <Repetition>
+        <Interval>PT6H</Interval>
+        <Duration>PT24H</Duration>
+        <StopAtDurationEnd>false</StopAtDurationEnd>
+      </Repetition>
+    </CalendarTrigger>
+  </Triggers>
+  <Principal id="Author">
+    <UserId>SYSTEM</UserId>
+    <LogonType>ServiceAccount</LogonType>
+    <RunLevel>HighestAvailable</RunLevel>
+  </Principal>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <Duration>PT10M</Duration>
+      <WaitTimeout>PT1H</WaitTimeout>
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
+    <Priority>5</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>powershell.exe</Command>
+      <Arguments>-File C:\Scripts\template.ps1</Arguments>
+      <WorkingDirectory>C:\Scripts</WorkingDirectory>
+    </Exec>
+  </Actions>
+</Task>
