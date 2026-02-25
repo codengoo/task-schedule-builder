@@ -60,12 +60,13 @@ export function toBoolean(value: unknown): boolean | undefined {
   return undefined;
 }
 
-export function toEnum<T>(
+export function toEnum<T extends Record<string, string | number>>(
   value: unknown,
-  allowedValues: readonly T[],
-): T | undefined {
-  if (allowedValues.includes(value as T)) {
-    return value as T;
+  enumType: T,
+): T[keyof T] | undefined {
+  const enumValues = Object.values(enumType) as Array<T[keyof T]>;
+  if (enumValues.includes(value as T[keyof T])) {
+    return value as T[keyof T];
   }
   return undefined;
 }

@@ -52,77 +52,6 @@ const parser = new XMLParser({
   attributeNamePrefix: "@_",
 });
 
-const LOGON_TYPES: readonly LogonType[] = [
-  LogonType.S4U,
-  LogonType.InteractiveToken,
-  LogonType.Password,
-  LogonType.InteractiveTokenOrPassword,
-];
-
-const RUN_LEVELS: readonly RunLevel[] = [
-  RunLevel.LeastPrivilege,
-  RunLevel.HighestAvailable,
-];
-
-const PROCESS_TOKEN_SID_TYPES: readonly ProcessTokenSidType[] = [
-  ProcessTokenSidType.None,
-  ProcessTokenSidType.Unrestricted,
-];
-
-const MULTIPLE_INSTANCES_POLICIES: readonly MultipleInstancesPolicy[] = [
-  MultipleInstancesPolicy.IgnoreNew,
-  MultipleInstancesPolicy.Queue,
-  MultipleInstancesPolicy.Parallel,
-  MultipleInstancesPolicy.StopExisting,
-];
-
-const SESSION_STATE_CHANGES: readonly SessionStateChange[] = [
-  SessionStateChange.ConsoleConnect,
-  SessionStateChange.ConsoleDisconnect,
-  SessionStateChange.RemoteConnect,
-  SessionStateChange.RemoteDisconnect,
-  SessionStateChange.SessionLock,
-  SessionStateChange.SessionUnlock,
-];
-
-const PRIVILEGES: readonly PrivilegeType[] = [
-  PrivilegeType.SeCreateTokenPrivilege,
-  PrivilegeType.SeAssignPrimaryTokenPrivilege,
-  PrivilegeType.SeLockMemoryPrivilege,
-  PrivilegeType.SeIncreaseQuotaPrivilege,
-  PrivilegeType.SeUnsolicitedInputPrivilege,
-  PrivilegeType.SeMachineAccountPrivilege,
-  PrivilegeType.SeTcbPrivilege,
-  PrivilegeType.SeSecurityPrivilege,
-  PrivilegeType.SeTakeOwnershipPrivilege,
-  PrivilegeType.SeLoadDriverPrivilege,
-  PrivilegeType.SeSystemProfilePrivilege,
-  PrivilegeType.SeSystemtimePrivilege,
-  PrivilegeType.SeProfileSingleProcessPrivilege,
-  PrivilegeType.SeIncreaseBasePriorityPrivilege,
-  PrivilegeType.SeCreatePagefilePrivilege,
-  PrivilegeType.SeCreatePermanentPrivilege,
-  PrivilegeType.SeBackupPrivilege,
-  PrivilegeType.SeRestorePrivilege,
-  PrivilegeType.SeShutdownPrivilege,
-  PrivilegeType.SeDebugPrivilege,
-  PrivilegeType.SeAuditPrivilege,
-  PrivilegeType.SeSystemEnvironmentPrivilege,
-  PrivilegeType.SeChangeNotifyPrivilege,
-  PrivilegeType.SeRemoteShutdownPrivilege,
-  PrivilegeType.SeUndockPrivilege,
-  PrivilegeType.SeSyncAgentPrivilege,
-  PrivilegeType.SeEnableDelegationPrivilege,
-  PrivilegeType.SeManageVolumePrivilege,
-  PrivilegeType.SeImpersonatePrivilege,
-  PrivilegeType.SeCreateGlobalPrivilege,
-  PrivilegeType.SeTrustedCredManAccessPrivilege,
-  PrivilegeType.SeRelabelPrivilege,
-  PrivilegeType.SeIncreaseWorkingSetPrivilege,
-  PrivilegeType.SeTimeZonePrivilege,
-  PrivilegeType.SeCreateSymbolicLinkPrivilege,
-];
-
 export class TaskParser {
   private task: Task;
 
@@ -285,7 +214,7 @@ export class TaskParser {
     result.RestartOnFailure = toBoolean(settings.RestartOnFailure);
     result.MultipleInstancesPolicy = toEnum(
       settings.MultipleInstancesPolicy,
-      MULTIPLE_INSTANCES_POLICIES,
+      MultipleInstancesPolicy,
     );
     result.DisallowStartIfOnBatteries = toBoolean(
       settings.DisallowStartIfOnBatteries,
@@ -334,13 +263,13 @@ export class TaskParser {
 
     const principal: Principal = {};
     principal.UserId = toString(value.UserId);
-    principal.LogonType = toEnum(value.LogonType, LOGON_TYPES);
+    principal.LogonType = toEnum(value.LogonType, LogonType);
     principal.GroupId = toString(value.GroupId);
     principal.DisplayName = toString(value.DisplayName);
-    principal.RunLevel = toEnum(value.RunLevel, RUN_LEVELS);
+    principal.RunLevel = toEnum(value.RunLevel, RunLevel);
     principal.ProcessTokenSidType = toEnum(
       value.ProcessTokenSidType,
-      PROCESS_TOKEN_SID_TYPES,
+      ProcessTokenSidType,
     );
 
     const requiredPrivileges = this.parseRequiredPrivilege(
@@ -359,7 +288,7 @@ export class TaskParser {
   ): RequiredPrivilege | undefined {
     if (!isRecord(value)) return undefined;
     const privileges = toStringArray(value.Privilege)
-      .map((item) => toEnum(item, PRIVILEGES))
+      .map((item) => toEnum(item, PrivilegeType))
       .filter((item): item is PrivilegeType => item !== undefined);
 
     if (!privileges.length) return undefined;
@@ -605,7 +534,7 @@ export class TaskParser {
   ): SessionStateChangeTrigger | undefined {
     if (!isRecord(value)) return undefined;
 
-    const stateChange = toEnum(value.StateChange, SESSION_STATE_CHANGES);
+    const stateChange = toEnum(value.StateChange, SessionStateChange);
     if (stateChange === undefined) return undefined;
 
     return compactObject({
