@@ -1,6 +1,6 @@
 export interface Settings {
   AllowDemandStart?: boolean;
-  RestartOnFailure?: boolean;
+  RestartOnFailure?: RestartOnFailure;
   MultipleInstancesPolicy?: MultipleInstancesPolicy;
   DisallowStartIfOnBatteries?: boolean;
   StopIfGoingOnBatteries?: boolean;
@@ -38,4 +38,9 @@ export interface IdleSettings {
 export interface NetworkSettings {
   Name?: string;
   Id?: string;
+}
+
+export interface RestartOnFailure {
+  Interval: string;
+  Count: number;
 }

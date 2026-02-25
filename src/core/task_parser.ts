@@ -22,6 +22,7 @@ import {
   ProcessTokenSidType,
   RegistrationInfo,
   RegistrationTrigger,
+  RestartOnFailure,
   Repetition,
   RequiredPrivilege,
   RunLevel,
@@ -71,6 +72,8 @@ export class TaskParser {
 
   private parseFile(content: string): Task {
     const parsed = parser.parse(content);
+    console.log(parsed);
+
     if (!isRecord(parsed) || !isRecord(parsed.Task)) {
       throw new Error("Invalid Task XML");
     }
@@ -211,7 +214,9 @@ export class TaskParser {
     const result: Settings = {};
 
     result.AllowDemandStart = toBoolean(settings.AllowDemandStart);
-    result.RestartOnFailure = toBoolean(settings.RestartOnFailure);
+    result.RestartOnFailure = this.parseRestartOnFailure(
+      settings.RestartOnFailure,
+    );
     result.MultipleInstancesPolicy = toEnum(
       settings.MultipleInstancesPolicy,
       MultipleInstancesPolicy,
@@ -247,6 +252,21 @@ export class TaskParser {
     if (networkSettings !== undefined) result.NetworkSettings = networkSettings;
 
     return compactObject(result);
+  }
+
+  private parseRestartOnFailure(value: unknown): RestartOnFailure | undefined {
+    if (!isRecord(value)) return undefined;
+
+    const interval = toString(value.Interval);
+    const count = toNumber(value.Count);
+    if (interval === undefined || count === undefined) {
+      return undefined;
+    }
+
+    return {
+      Interval: interval,
+      Count: count,
+    };
   }
 
   private parsePrincipals(principals: Record<string, unknown>): Principals {

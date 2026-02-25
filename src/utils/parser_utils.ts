@@ -46,29 +46,23 @@ export function toNumberOrNumberArray(
 }
 
 export function toBoolean(value: unknown): boolean | undefined {
+  if (value === undefined) return undefined;
   if (typeof value === "boolean") return value;
-  if (typeof value === "number") {
-    if (value === 1) return true;
-    if (value === 0) return false;
-    return undefined;
-  }
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === "true" || normalized === "1") return true;
-    if (normalized === "false" || normalized === "0") return false;
-  }
-  return undefined;
+  throw new Error(`Invalid boolean value: ${value}`);
 }
 
 export function toEnum<T extends Record<string, string | number>>(
   value: unknown,
   enumType: T,
 ): T[keyof T] | undefined {
+  if (value === undefined) return undefined;
   const enumValues = Object.values(enumType) as Array<T[keyof T]>;
   if (enumValues.includes(value as T[keyof T])) {
     return value as T[keyof T];
   }
-  return undefined;
+  throw new Error(
+    `Invalid enum value: ${value}. Expected one of: ${enumValues.join(", ")}`,
+  );
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
