@@ -2,6 +2,8 @@ import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import fs from "fs";
 import { parseXmlString } from "libxmljs2";
 import { Task } from "../interfaces";
+import type { DeepPartial } from "../types";
+import { deepMerge } from "../utils/parser_utils";
 
 const parser = new XMLParser({
   ignoreDeclaration: true,
@@ -21,15 +23,16 @@ const builder = new XMLBuilder({
   attributeNamePrefix: "@_",
   format: true,
 });
-
 export class TaskScheduleIO {
-  private task: Task;
+  private task?: Task;
   private readonly xsdPath = new URL(
     "../constants/task.xsd",
     import.meta.url
   ).pathname.slice(1);
 
-  constructor(filePath: string) {
+  constructor(filePath?: string) {
+    if (!filePath) return;
+
     const content = this.loadFile(filePath);
     if (!content.trim().length) {
       throw new Error("File is empty");
@@ -89,11 +92,45 @@ export class TaskScheduleIO {
     }
   }
 
-  public getTask(): Task {
+  /**
+   * Get current task object.
+   * @returns The current task object.
+   */
+  public getTask(): Task | undefined {
     return this.task;
   }
 
-  public save(filePath: string): void {
+  /**
+   * Replace the entire task object.
+   * @param task The new task object.
+   */
+  public setTask(task: Task): void {
+    this.task = task;
+  }
+
+  /**
+   * Deep-merge partial updates into the current task.
+   * Useful for modifying nested fields without replacing the whole object.
+   *
+   * @example
+   * parser.updateTask({ RegistrationInfo: { Description: "Updated" } });
+   */
+  public updateTask(updates: DeepPartial<Task>): void {
+    if (!this.task) {
+      throw new Error("No task loaded to update");
+    }
+    this.task = deepMerge(this.task, updates);
+  }
+
+
+  /**
+   * Save the current task to a file.
+   * @param filePath The path to the file where the task should be saved.
+   */
+  public saveTask(filePath: string): void {
+    if (!this.task) {
+      throw new Error("No task loaded to save");
+    }
     TaskScheduleIO.saveFile(this.task, filePath);
   }
 }
