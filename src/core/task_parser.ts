@@ -1,4 +1,4 @@
-import { XMLParser } from "fast-xml-parser";
+import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import fs from "fs";
 import { parseXmlString } from "libxmljs2";
 import { Task } from "../interfaces";
@@ -16,7 +16,13 @@ const parser = new XMLParser({
   },
 });
 
-export class TaskScheduleParser {
+const builder = new XMLBuilder({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+  format: true,
+});
+
+export class TaskScheduleIO {
   private task: Task;
   private readonly xsdPath = new URL(
     "../constants/task.xsd",
@@ -33,8 +39,27 @@ export class TaskScheduleParser {
     this.validateXML(content);
 
     // Parse the validated XML
-    this.task = this.parseFile(content);
+    this.task = TaskScheduleIO.parseFile(content);
   }
+
+  static parseFile(content: string): Task {
+    const parsed = parser.parse(content);
+
+    if (!parsed || typeof parsed !== "object" || !("Task" in parsed)) {
+      throw new Error("Invalid Task XML structure");
+    }
+
+    // Since XSD validation passed, we can trust the structure
+    // XMLParser with parseTagValue and parseAttributeValue will handle type conversion
+    return parsed.Task as Task;
+  }
+
+  static saveFile(task: Task, filePath: string): void {
+    const xmlContent = builder.build({ Task: task });
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-16"?>';
+    fs.writeFileSync(filePath, `${xmlDeclaration}\n${xmlContent}`, "utf-8");
+  }
+
 
   private loadFile(filePath: string): string {
     return fs.readFileSync(filePath, "utf-8");
@@ -64,19 +89,11 @@ export class TaskScheduleParser {
     }
   }
 
-  private parseFile(content: string): Task {
-    const parsed = parser.parse(content);
-
-    if (!parsed || typeof parsed !== "object" || !("Task" in parsed)) {
-      throw new Error("Invalid Task XML structure");
-    }
-
-    // Since XSD validation passed, we can trust the structure
-    // XMLParser with parseTagValue and parseAttributeValue will handle type conversion
-    return parsed.Task as Task;
-  }
-
   public getTask(): Task {
     return this.task;
+  }
+
+  public save(filePath: string): void {
+    TaskScheduleIO.saveFile(this.task, filePath);
   }
 }

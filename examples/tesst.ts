@@ -1,4 +1,5 @@
-import { TaskScheduleParser } from "../src/core/task_parser";
+import { TaskScheduleIO } from "../src/core/task_parser";
 
-const parser = new TaskScheduleParser("test\\fixtures\\test-template.xml");
+const parser = new TaskScheduleIO("test\\fixtures\\test-template.xml");
 console.log(parser.getTask());
+parser.save("test\\fixtures\\test-template-out.xml");
