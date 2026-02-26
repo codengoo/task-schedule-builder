@@ -11,115 +11,184 @@ import { TaskScheduleController } from "./task-controller";
 const execAsync = promisify(exec);
 
 export interface TaskRegistrationOptions {
-    force?: boolean;
-    runAsSystem?: boolean;
-    user?: string;
-    password?: string;
+  force?: boolean;
+  runAsSystem?: boolean;
+  user?: string;
+  password?: string;
 }
 
 /**
  * High-level controller for loading Task XML definitions and registering them with schtasks.
  */
 export class TaskSchedulerSetup {
-    private readonly taskIO: TaskScheduleController;
+  private readonly taskIO: TaskScheduleController;
 
-    constructor(source: string | TaskScheduleController) {
-        this.taskIO = typeof source === "string" ? new TaskScheduleController(source) : source;
+  constructor(source: string | TaskScheduleController) {
+    this.taskIO =
+      typeof source === "string" ? new TaskScheduleController(source) : source;
+  }
+
+  /**
+   * Register or update the task within Windows Task Scheduler using schtasks.
+   *
+   * @param taskName Optional explicit task name. Falls back to RegistrationInfo.URI when omitted.
+   */
+  public async register(
+    taskName?: string,
+    options?: TaskRegistrationOptions,
+  ): Promise<ExecutionResult> {
+    const task = this.ensureTask();
+    const resolvedName = taskName ?? task.RegistrationInfo?.URI;
+
+    if (!resolvedName) {
+      throw new Error(
+        "Task name is required. Provide a taskName or ensure RegistrationInfo.URI is set.",
+      );
     }
 
-    /**
-     * Register or update the task within Windows Task Scheduler using schtasks.
-     *
-     * @param taskName Optional explicit task name. Falls back to RegistrationInfo.URI when omitted.
-     */
-    public async register(taskName?: string, options?: TaskRegistrationOptions): Promise<ExecutionResult> {
-        const task = this.ensureTask();
-        const resolvedName = taskName ?? task.RegistrationInfo?.URI;
-
-        if (!resolvedName) {
-            throw new Error(
-                "Task name is required. Provide a taskName or ensure RegistrationInfo.URI is set."
-            );
-        }
-
-        if (options?.runAsSystem && options?.user) {
-            throw new Error("Cannot specify both runAsSystem and a custom user.");
-        }
-
-        if (options?.password && !options?.user) {
-            throw new Error("A password was provided without a matching user option.");
-        }
-
-        const xmlPath = this.createTempXml(task);
-
-        try {
-            const command = this.buildCommand(resolvedName, xmlPath, options);
-            const { stdout, stderr } = await execAsync(command);
-            return {
-                success: true,
-                output: stdout,
-                error: stderr || undefined,
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                output: "",
-                error: error?.message ?? String(error),
-            };
-        } finally {
-            await this.deleteTempFile(xmlPath);
-        }
+    if (options?.runAsSystem && options?.user) {
+      throw new Error("Cannot specify both runAsSystem and a custom user.");
     }
 
-    private ensureTask(): Task {
-        const task = this.taskIO.getTask();
-        if (!task) {
-            throw new Error("No task has been loaded. Load or set a task before registering.");
-        }
-        return task;
+    if (options?.password && !options?.user) {
+      throw new Error(
+        "A password was provided without a matching user option.",
+      );
     }
 
-    private createTempXml(task: Task): string {
-        const tempPath = join(tmpdir(), `task-${Date.now()}-${randomUUID()}.xml`);
-        TaskScheduleController.saveFile(task, tempPath);
-        return tempPath;
+    if (await this.taskExists(resolvedName)) {
+      const deregisterResult = await this.deregister(resolvedName);
+      if (!deregisterResult.success) {
+        return {
+          success: false,
+          output: "",
+          error: `Failed to remove existing task: ${deregisterResult.error ?? "Unknown error"}`,
+        };
+      }
     }
 
-    private async deleteTempFile(filePath: string): Promise<void> {
-        try {
-            await unlink(filePath);
-        } catch {
-            // ignore cleanup errors
-        }
+    const xmlPath = this.createTempXml(task);
+
+    try {
+      const command = this.buildCommand(resolvedName, xmlPath, options);
+      const { stdout, stderr } = await execAsync(command);
+      return {
+        success: true,
+        output: stdout,
+        error: stderr || undefined,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        output: "",
+        error: error?.message ?? String(error),
+      };
+    } finally {
+      await this.deleteTempFile(xmlPath);
+    }
+  }
+
+  /**
+   * Delete an existing task from Windows Task Scheduler.
+   *
+   * @param taskName Optional explicit task name. Falls back to RegistrationInfo.URI when omitted.
+   */
+  public async deregister(taskName?: string): Promise<ExecutionResult> {
+    const resolvedName =
+      taskName ?? this.taskIO.getTask()?.RegistrationInfo?.URI;
+
+    if (!resolvedName) {
+      throw new Error(
+        "Task name is required. Provide a taskName or ensure RegistrationInfo.URI is set.",
+      );
     }
 
-    private buildCommand(name: string, xmlPath: string, options?: TaskRegistrationOptions): string {
-        const segments: string[] = [
-            "/Create",
-            `/TN "${this.escapeQuotes(name)}"`,
-            `/XML "${this.escapeQuotes(xmlPath)}"`,
-        ];
+    try {
+      const command = this.buildDeleteCommand(resolvedName);
+      const { stdout, stderr } = await execAsync(command);
+      return {
+        success: true,
+        output: stdout,
+        error: stderr || undefined,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        output: "",
+        error: error?.message ?? String(error),
+      };
+    }
+  }
 
-        if (options?.force) {
-            segments.push("/F");
-        }
+  private ensureTask(): Task {
+    const task = this.taskIO.getTask();
+    if (!task) {
+      throw new Error(
+        "No task has been loaded. Load or set a task before registering.",
+      );
+    }
+    return task;
+  }
 
-        if (options?.runAsSystem) {
-            segments.push("/RU SYSTEM");
-        }
+  private createTempXml(task: Task): string {
+    const tempPath = join(tmpdir(), `task-${Date.now()}-${randomUUID()}.xml`);
+    TaskScheduleController.saveFile(task, tempPath);
+    return tempPath;
+  }
 
-        if (options?.user) {
-            segments.push(`/RU "${this.escapeQuotes(options.user)}"`);
-        }
+  private async deleteTempFile(filePath: string): Promise<void> {
+    try {
+      await unlink(filePath);
+    } catch {
+      // ignore cleanup errors
+    }
+  }
 
-        if (options?.password) {
-            segments.push(`/RP "${this.escapeQuotes(options.password)}"`);
-        }
+  private buildCommand(
+    name: string,
+    xmlPath: string,
+    options?: TaskRegistrationOptions,
+  ): string {
+    const segments: string[] = [
+      "/Create",
+      `/TN "${this.escapeQuotes(name)}"`,
+      `/XML "${this.escapeQuotes(xmlPath)}"`,
+    ];
 
-        return `schtasks ${segments.join(" ")}`;
+    if (options?.force) {
+      segments.push("/F");
     }
 
-    private escapeQuotes(value: string): string {
-        return value.replace(/"/g, '\\"');
+    if (options?.runAsSystem) {
+      segments.push("/RU SYSTEM");
     }
+
+    if (options?.user) {
+      segments.push(`/RU "${this.escapeQuotes(options.user)}"`);
+    }
+
+    if (options?.password) {
+      segments.push(`/RP "${this.escapeQuotes(options.password)}"`);
+    }
+
+    return `schtasks ${segments.join(" ")}`;
+  }
+
+  private buildDeleteCommand(name: string): string {
+    return `schtasks /Delete /TN "${this.escapeQuotes(name)}" /F`;
+  }
+
+  private async taskExists(name: string): Promise<boolean> {
+    try {
+      const command = `schtasks /Query /TN "${this.escapeQuotes(name)}"`;
+      await execAsync(command);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private escapeQuotes(value: string): string {
+    return value.replace(/"/g, '\\"');
+  }
 }
