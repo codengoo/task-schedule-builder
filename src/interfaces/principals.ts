@@ -1,8 +1,9 @@
 export interface Principals {
-  Principal?: Principal;
+  Principal: Principal;
 }
 
 export interface Principal {
+  "@_id"?: string;
   UserId?: string;
   LogonType?: LogonType;
   GroupId?: string;

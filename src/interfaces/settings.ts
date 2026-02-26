@@ -1,5 +1,5 @@
 export interface Settings {
-  AllowDemandStart?: boolean;
+  AllowStartOnDemand?: boolean;
   RestartOnFailure?: RestartOnFailure;
   MultipleInstancesPolicy?: MultipleInstancesPolicy;
   DisallowStartIfOnBatteries?: boolean;

@@ -1,43 +1,53 @@
 export interface Actions {
-  Context?: string;
-  Exec?: ExecType;
-  ComHandler?: ComHandlerType;
-  SendEmail?: SendEmailType;
+  "@_Context"?: string;
+  Exec?: ExecType | ExecType[];
+  ComHandler?: ComHandlerType | ComHandlerType[];
+  SendEmail?: SendEmailType | SendEmailType[];
+  ShowMessage?: ShowMessageType | ShowMessageType[];
 }
 
 export interface ExecType {
+  "@_id"?: string;
   Command: string;
-  Arguments?: string | string[];
-  WorkingDirectory?: string | string[];
+  Arguments?: string;
+  WorkingDirectory?: string;
 }
 
 export interface ComHandlerType {
+  "@_id"?: string;
   ClassId: string;
-  Date: string;
+  Data?: any;
 }
 
 export interface SendEmailType {
+  "@_id"?: string;
   Server: string;
-  Subject: string;
-  To: string;
-  From: string;
+  Subject?: string;
+  To?: string;
   Cc?: string;
   Bcc?: string;
-  Body?: string;
   ReplyTo?: string;
-  HeaderFields?: { [key: string]: string };
-  Attachments?: AttachmentType;
+  From?: string;
+  HeaderFields?: HeaderFieldsType;
+  Body?: string;
+  Attachments?: AttachmentsType;
 }
 
-export interface AttachmentType {
-  File: string | string[];
-}
-
-export interface HeaderField {
+export interface HeaderFieldsType {
   HeaderField: HeaderFieldType | HeaderFieldType[];
 }
 
 export interface HeaderFieldType {
   Name: string;
   Value: string;
+}
+
+export interface AttachmentsType {
+  File: string | string[];
+}
+
+export interface ShowMessageType {
+  "@_id"?: string;
+  Title: string;
+  Body: string;
 }

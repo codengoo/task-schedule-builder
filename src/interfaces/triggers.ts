@@ -51,19 +51,20 @@ export interface TimeTrigger extends TriggerBase {
   RandomDelay?: string;
 }
 
+export interface NamedValue {
+  "#text": string;
+  "@_name": string;
+}
+
 export interface EventTrigger extends TriggerBase {
   Subscription: string;
   Delay?: string;
   PeriodOfOccurrence?: string;
-  NumberOfOccurrences: number;
-  MatchingElement?: string | string[];
-  ValueQueries?:
-  | {
-    Value: string | string[];
-  }
-  | {
-    Value: string | string[];
-  }[];
+  NumberOfOccurrences?: number;
+  MatchingElement?: string;
+  ValueQueries?: {
+    Value: NamedValue | NamedValue[];
+  };
 }
 
 export interface LogonTrigger extends TriggerBase {
@@ -77,34 +78,38 @@ export interface SessionStateChangeTrigger extends TriggerBase {
   StateChange: SessionStateChange;
 }
 
-export interface CalendarTrigger extends TriggerBase {
-  RandomDelay?: string;
-
-  ScheduleByDay?: {
-    DaysInterval?: number | number[];
-  };
-
-  ScheduleByWeek?: {
-    WeeksInterval?: number | number[];
-    DaysOfWeek?: DaysOfWeek | DaysOfWeek[];
-  };
-
-  ScheduleByMonth: {
-    DaysOfMonth?: {
-      Day?: string | "Last" | (string | "Last")[];
-    };
-
-    Months: Months | Months[];
-  };
-
-  ScheduleByMonthDayOfWeek: {
-    Weeks: {
-      Week: string | "Last" | (string | "Last")[];
-    };
-    DaysOfWeek: DaysOfWeek | DaysOfWeek[];
-    Months: Months | Months[];
-  };
+export interface DailySchedule {
+  DaysInterval?: number;
 }
+
+export interface WeeklySchedule {
+  WeeksInterval?: number;
+  DaysOfWeek?: DaysOfWeek;
+}
+
+export interface MonthlySchedule {
+  DaysOfMonth?: {
+    Day?: string | string[];
+  };
+  Months?: Months;
+}
+
+export interface MonthlyDayOfWeekSchedule {
+  Weeks?: {
+    Week?: string | string[];
+  };
+  DaysOfWeek: DaysOfWeek;
+  Months?: Months;
+}
+
+// xs:choice — exactly one schedule type must be present
+export type CalendarSchedule =
+  | { ScheduleByDay: DailySchedule; ScheduleByWeek?: never; ScheduleByMonth?: never; ScheduleByMonthDayOfWeek?: never }
+  | { ScheduleByDay?: never; ScheduleByWeek: WeeklySchedule; ScheduleByMonth?: never; ScheduleByMonthDayOfWeek?: never }
+  | { ScheduleByDay?: never; ScheduleByWeek?: never; ScheduleByMonth: MonthlySchedule; ScheduleByMonthDayOfWeek?: never }
+  | { ScheduleByDay?: never; ScheduleByWeek?: never; ScheduleByMonth?: never; ScheduleByMonthDayOfWeek: MonthlyDayOfWeekSchedule };
+
+export type CalendarTrigger = TriggerBase & { RandomDelay?: string } & CalendarSchedule;
 
 export type Months = Partial<Record<(typeof MONTH_KEYS)[number], "">>;
 export type DaysOfWeek = Partial<

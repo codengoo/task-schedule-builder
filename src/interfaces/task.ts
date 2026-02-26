@@ -5,7 +5,7 @@ import { Settings } from "./settings";
 import { Triggers } from "./triggers";
 
 export interface Task {
-  "@_version"?: "1.2";
+  "@_version"?: "1.3";
   "@_xmlns"?: "http://schemas.microsoft.com/windows/2004/02/mit/task";
 
   RegistrationInfo?: RegistrationInfo;
