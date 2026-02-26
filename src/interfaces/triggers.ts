@@ -1,3 +1,5 @@
+import { DAYS_OF_WEEK_KEYS, MONTH_KEYS } from "../constants";
+
 export interface Triggers {
   BootTrigger?: BootTrigger | BootTrigger[];
   RegistrationTrigger?: RegistrationTrigger | RegistrationTrigger[];
@@ -6,8 +8,8 @@ export interface Triggers {
   EventTrigger?: EventTrigger | EventTrigger[];
   LogonTrigger?: LogonTrigger | LogonTrigger[];
   SessionStateChangeTrigger?:
-    | SessionStateChangeTrigger
-    | SessionStateChangeTrigger[];
+  | SessionStateChangeTrigger
+  | SessionStateChangeTrigger[];
   CalendarTrigger?: CalendarTrigger | CalendarTrigger[];
 }
 
@@ -43,7 +45,7 @@ export interface RegistrationTrigger extends TriggerBase {
   Delay?: string;
 }
 
-export interface IdleTrigger extends TriggerBase {}
+export interface IdleTrigger extends TriggerBase { }
 
 export interface TimeTrigger extends TriggerBase {
   RandomDelay?: string;
@@ -56,12 +58,12 @@ export interface EventTrigger extends TriggerBase {
   NumberOfOccurrences: number;
   MatchingElement?: string | string[];
   ValueQueries?:
-    | {
-        Value: string | string[];
-      }
-    | {
-        Value: string | string[];
-      }[];
+  | {
+    Value: string | string[];
+  }
+  | {
+    Value: string | string[];
+  }[];
 }
 
 export interface LogonTrigger extends TriggerBase {
@@ -104,27 +106,7 @@ export interface CalendarTrigger extends TriggerBase {
   };
 }
 
-export interface DaysOfWeek {
-  Monday?: "";
-  Tuesday?: "";
-  Wednesday?: "";
-  Thursday?: "";
-  Friday?: "";
-  Saturday?: "";
-  Sunday?: "";
-}
-
-export interface Months {
-  January?: "";
-  February?: "";
-  March?: "";
-  April?: "";
-  May?: "";
-  June?: "";
-  July?: "";
-  August?: "";
-  September?: "";
-  October?: "";
-  November?: "";
-  December?: "";
-}
+export type Months = Partial<Record<(typeof MONTH_KEYS)[number], "">>;
+export type DaysOfWeek = Partial<
+  Record<(typeof DAYS_OF_WEEK_KEYS)[number], "">
+>;

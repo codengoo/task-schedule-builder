@@ -1,36 +1,16 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-import fs from "node:fs";
-const parser = new XMLParser({
-  ignoreDeclaration: true,
-});
+import fs from "fs";
+import libxml from "libxmljs2";
 
-const builder = new XMLBuilder({
-  format: true,
-  ignoreAttributes: false,
-});
+const xsd = fs.readFileSync("src\\constants\\task.xsd", "utf8");
+const xml = fs.readFileSync("test\\fixtures\\test-template.xml", "utf8");
 
-const xmlFromFile = fs.readFileSync(
-  "test.xml",
-  "utf-8",
-);
+const xsdDoc = libxml.parseXml(xsd);
+const xmlDoc = libxml.parseXml(xml);
 
-const obj = parser.parse(xmlFromFile);
-console.log(obj);
+const valid = xmlDoc.validate(xsdDoc);
 
-// const obj = {
-//   Task: {
-//     "@_version": "1.2",
-//     "@_xmlns": "http://schemas.microsoft.com/windows/2004/02/mit/task",
-
-//     Actions: {
-//       Exec: {
-//         Command: "npm",
-//       },
-//     },
-//   },
-// };
-
-// // Convert ngược lại XML
-const xml = builder.build(obj);
-
-console.log(xml);
+if (!valid) {
+  console.log(xmlDoc.validationErrors);
+} else {
+  console.log("XML valid");
+}

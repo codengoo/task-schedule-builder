@@ -45,6 +45,9 @@
     "vitest": "^2.0.0"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.3.9"
+    "fast-xml-parser": "^5.3.9",
+    "install": "^0.13.0",
+    "libxmljs2": "^0.37.0",
+    "npm": "^11.11.0"
   }
 }

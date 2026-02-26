@@ -10,16 +10,16 @@
   </RegistrationInfo>
   <Triggers>
     <CalendarTrigger>
-      <StartBoundary>2024-01-01T09:00:00</StartBoundary>
       <Enabled>true</Enabled>
-      <ScheduleByDay>
-        <DaysInterval>1</DaysInterval>
-      </ScheduleByDay>
+      <StartBoundary>2024-01-01T09:00:00</StartBoundary>
       <Repetition>
         <Interval>PT1H</Interval>
         <Duration>PT12H</Duration>
         <StopAtDurationEnd>true</StopAtDurationEnd>
       </Repetition>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
     </CalendarTrigger>
     <LogonTrigger>
       <Enabled>true</Enabled>

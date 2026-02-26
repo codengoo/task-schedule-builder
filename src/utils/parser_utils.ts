@@ -25,20 +25,23 @@ export function toStringOrStringArray(
   return values.length === 1 ? values[0] : values;
 }
 
-export function toNumber(value: unknown): number | undefined {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
+export function toNumber(value: unknown, min?: number, max?: number): number | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    if ((min !== undefined && value < min) || (max !== undefined && value > max)) throw new Error(`Number value ${value} is out of range [${min}, ${max}]`);
+    return value;
   }
-  return undefined;
+
+  throw new Error(`Invalid number value: ${value}`);
 }
 
 export function toNumberOrNumberArray(
   value: unknown,
+  min?: number,
+  max?: number,
 ): number | number[] | undefined {
   const values = toArray(value)
-    .map((item) => toNumber(item))
+    .map((item) => toNumber(item, min, max))
     .filter((item): item is number => item !== undefined);
 
   if (!values.length) return undefined;
@@ -74,4 +77,22 @@ export function compactObject<T extends object>(value: T): T {
     ([, item]) => item !== undefined,
   );
   return Object.fromEntries(entries) as T;
+}
+
+export function toConstants<T extends Record<string, string>>(value: any, allowedKeys: readonly string[]): T | undefined {
+  if (!isRecord(value)) return undefined;
+
+  const results: T = {} as T;
+
+  for (const key of allowedKeys) {
+    if (key in value) {
+      if (value[key] !== "")
+        throw new Error(`${key} must be "". Not ${value[key]}`);
+
+      // @ts-ignore
+      results[key] = "";
+    }
+  }
+
+  return Object.keys(results).length ? results : undefined;
 }
