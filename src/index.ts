@@ -10,9 +10,11 @@ export { toXml } from './xml'
 // Export CLI utilities
 export {
   createTask,
-  deleteTask,
-  listTasks,
-  runTask,
-  getTaskInfo,
-  taskExists,
+  deleteTask, getTaskInfo, listTasks,
+  runTask, taskExists
 } from './cli'
+
+// Export core XML utilities
+export { TaskScheduleController as TaskScheduleIO } from './core/task-controller'
+export { TaskSchedulerSetup as TaskController } from './core/task-setup'
+
